@@ -71,6 +71,7 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, on
                 entries.map((e) => ({...e, timestamp: e.updatedAt}))
             )
         );
+        enqueueSnackbar('CSVを出力しました', {variant: 'success'});
     };
 
     const remove = (entry: MyReportData_reportEntries) =>

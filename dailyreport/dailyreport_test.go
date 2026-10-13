@@ -61,7 +61,9 @@ func TestSaveDailyReport_rejectsInvalidInput(t *testing.T) {
 	require.Error(t, err)
 	_, err = r.SaveDailyReport(fake.UserWithPerm(1, false), dep, "2026-10-13", "", "", 0, []*gqlmodel.InputReportEntry{entry("", "実装", 0)})
 	require.Error(t, err)
-	_, err = r.SaveDailyReport(fake.UserWithPerm(1, false), dep, "2026-10-13", "10時", "19:00", 1, nil)
+	_, err = r.SaveDailyReport(fake.UserWithPerm(1, false), dep, "2026-10-13", "10時", "19:00", 1, []*gqlmodel.InputReportEntry{entry("", "実装", 1)})
+	require.Error(t, err)
+	_, err = r.SaveDailyReport(fake.UserWithPerm(1, false), dep, "2026-10-13", "10:00", "19:00", 1, nil)
 	require.Error(t, err)
 }
 
@@ -102,9 +104,10 @@ func TestRemoveReportEntry_onlyOwnEntries(t *testing.T) {
 func TestReportDepartments_onlyMembershipsForUsers(t *testing.T) {
 	db, r, _ := setup(t)
 	defer db.Close()
-	_, err := r.CreateReportDepartment(fake.User(3), "営業", `{"groups":[]}`)
+	created, err := r.CreateReportDepartment(fake.User(3), "営業")
 	require.NoError(t, err)
-	_, err = r.CreateReportDepartment(fake.User(3), "壊れた設定", `[1]`)
+	require.Equal(t, "{}", created.Settings)
+	_, err = r.UpdateReportDepartment(fake.User(3), created.ID, "営業", `[1]`, nil)
 	require.Error(t, err)
 
 	departments, err := r.ReportDepartments(fake.UserWithPerm(1, false), true)

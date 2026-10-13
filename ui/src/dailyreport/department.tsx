@@ -10,11 +10,12 @@ import {
     ReportDepartmentsVariables,
 } from '../gql/__generated__/ReportDepartments';
 
-const STORAGE_KEY = 'dailyReport.departmentId';
+// 日報入力と日報設定で別々に覚える
+const storageKey = (all: boolean) => `dailyReport.departmentId${all ? '.settings' : ''}`;
 
-const readSelected = (): number => {
+const readSelected = (all: boolean): number => {
     try {
-        return Number(localStorage.getItem(STORAGE_KEY)) || 0;
+        return Number(localStorage.getItem(storageKey(all))) || 0;
     } catch (e) {
         return 0;
     }
@@ -26,13 +27,13 @@ export const useReportDepartment = (all: boolean) => {
         variables: {all},
     });
     const departments = (data && data.reportDepartments) || [];
-    const [selectedId, setSelectedId] = React.useState(readSelected);
+    const [selectedId, setSelectedId] = React.useState(() => readSelected(all));
     const department: ReportDepartments_reportDepartments | undefined =
         departments.find((d) => d.id === selectedId) || departments[0];
     const select = (id: number) => {
         setSelectedId(id);
         try {
-            localStorage.setItem(STORAGE_KEY, String(id));
+            localStorage.setItem(storageKey(all), String(id));
         } catch (e) {
             // the selection is only a convenience
         }

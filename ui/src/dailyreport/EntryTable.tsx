@@ -52,8 +52,8 @@ export const EntryTable: React.FC<Props> = ({settings, rows, onChange}) => {
                             グループ
                             <Required />
                         </TableCell>
-                        <TableCell style={{width: 80}}>
-                            時間
+                        <TableCell style={{width: 90}}>
+                            実績時間
                             <Required />
                         </TableCell>
                         <TableCell style={{width: 48}} />

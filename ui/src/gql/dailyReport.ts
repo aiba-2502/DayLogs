@@ -75,8 +75,8 @@ export const RemoveReportEntry = gql`
 `;
 
 export const CreateReportDepartment = gql`
-    mutation CreateReportDepartment($name: String!, $settings: String!) {
-        createReportDepartment(name: $name, settings: $settings) {
+    mutation CreateReportDepartment($name: String!) {
+        createReportDepartment(name: $name) {
             id
         }
     }

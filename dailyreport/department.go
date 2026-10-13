@@ -30,9 +30,9 @@ func (r *ResolverForDailyReport) ReportDepartments(ctx context.Context, all bool
 	return result, nil
 }
 
-// CreateReportDepartment creates a department.
-func (r *ResolverForDailyReport) CreateReportDepartment(ctx context.Context, name string, settings string) (*gqlmodel.ReportDepartment, error) {
-	department := model.ReportDepartment{Name: strings.TrimSpace(name), Settings: settings}
+// CreateReportDepartment creates a department with empty settings.
+func (r *ResolverForDailyReport) CreateReportDepartment(ctx context.Context, name string) (*gqlmodel.ReportDepartment, error) {
+	department := model.ReportDepartment{Name: strings.TrimSpace(name), Settings: "{}"}
 	if err := validateDepartment(department); err != nil {
 		return nil, err
 	}

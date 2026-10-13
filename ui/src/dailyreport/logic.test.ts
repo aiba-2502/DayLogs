@@ -1,6 +1,7 @@
 import {
     buildCsv,
     categoryPairs,
+    formatWorkHours,
     fromSettingsDraft,
     setOverride,
     toSettingsDraft,
@@ -44,10 +45,10 @@ it('fills defaults and keeps unknown keys', () => {
     expect(parseSettings('broken').groups).toEqual([]);
 });
 
-it('resolves work category per subcategory, then per category', () => {
+it('resolves work category per category and subcategory', () => {
     expect(resolveWorkCategoryName(settings, '開発', '実装')).toBe('研究開発');
     expect(resolveAssetFlag(settings, '開発', '実装')).toBe('1');
-    expect(resolveWorkCategoryName(settings, '開発', '設計')).toBe('自社利用・市場販売');
+    expect(resolveWorkCategoryName(settings, '開発', '設計')).toBe('');
     expect(resolveWorkCategoryName(settings, '雑務', '')).toBe('');
     expect(resolveAssetFlag(settings, '雑務', '')).toBe('0');
 });
@@ -74,6 +75,8 @@ it('calculates working hours', () => {
     expect(workHours('9:00', '18:00', 1)).toBe(8);
     expect(workHours('10', '19:00', 1)).toBeNull();
     expect(toHalfWidth('１．５')).toBe('1.5');
+    expect(formatWorkHours(8.5)).toBe('8:30（0:30）');
+    expect(formatWorkHours(7.75)).toBe('7:45');
 });
 
 it('builds the CSV of the original tool', () => {
@@ -101,7 +104,7 @@ it('builds the CSV of the original tool', () => {
 
 it('imports and exports the settings file', () => {
     const file = importSettingsJs(`
-        // comment
+        /** 形式: { id: "001" } */
         var DAILY_REPORT_SETTINGS = {
             settingsGroupName: "開発室",
             names: [{ name: "山田", freeeEmployeeNo: "8" }, "佐藤", { name: "伊藤", settingsGroupNo: "001,002" }],
@@ -120,13 +123,15 @@ it('imports and exports the settings file', () => {
     expect(file.settings.backlog).toEqual({space: 'example'});
     expect(importSettingsJs(exportSettingsJs(file))).toEqual({...file, sharedMembers: []});
     expect(() => importSettingsJs('var X = 1;')).toThrow();
+    // 実行はしない
+    expect(() => importSettingsJs('var DAILY_REPORT_SETTINGS = { a: alert(1) };')).toThrow();
 });
 
 it('converts settings to the editor state and back', () => {
     const draft = toSettingsDraft('開発室', settings, [{userId: 1, name: '山田', freeeEmployeeNo: ''}]);
     expect(draft.groupsText).toBe('001=PoC\n999=その他');
     expect(JSON.parse(draft.otherJson).backlog).toEqual({space: 'example'});
-    expect(fromSettingsDraft(draft)).toEqual(settings);
+    expect(fromSettingsDraft(draft)).toEqual({...settings, subcategoryWorkOverrides: [settings.subcategoryWorkOverrides[0]]});
 
     const edited = fromSettingsDraft({
         ...draft,
@@ -134,6 +139,7 @@ it('converts settings to the editor state and back', () => {
         categories: [
             {name: '開発', subcategoriesText: '実装\n\n', defaultGroupId: '001'},
             {name: '', subcategoriesText: '', defaultGroupId: '001'},
+            {name: '新規', subcategoriesText: '', defaultGroupId: ''},
         ],
         overrides: [
             ...settings.subcategoryWorkOverrides,
@@ -142,8 +148,12 @@ it('converts settings to the editor state and back', () => {
         otherJson: '',
     });
     expect(edited.groups).toEqual([{id: '001', name: 'PoC'}]);
-    expect(edited.categories).toEqual([{name: '開発', defaultGroupId: '001', subcategories: ['実装']}]);
-    expect(edited.subcategoryWorkOverrides).toEqual(settings.subcategoryWorkOverrides);
+    expect(edited.categories).toEqual([
+        {name: '開発', defaultGroupId: '001', subcategories: ['実装']},
+        {name: '新規', defaultGroupId: '', subcategories: []},
+    ]);
+    // 表に出ないカテゴリ全体の設定（開発は分類があるので分類なしの行は出ない）と削除したカテゴリの設定は捨てる
+    expect(edited.subcategoryWorkOverrides).toEqual([settings.subcategoryWorkOverrides[0]]);
     expect(() => fromSettingsDraft({...draft, otherJson: '[1]'})).toThrow();
 });
 

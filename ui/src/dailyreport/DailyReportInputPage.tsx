@@ -27,11 +27,15 @@ import {
     downloadText,
     emptyRow,
     EntryRow,
+    formatClock,
     formatDate,
+    hasInput,
     hours,
     markdown,
     parseSettings,
     ReportSettings,
+    sumHours,
+    trimRow,
     validateRows,
     weekday,
     workHours,
@@ -101,7 +105,8 @@ const useDraft = (key: string, settings: ReportSettings): [Draft, (d: Draft) => 
         const initial = newDraft(settings);
         try {
             const rows = JSON.parse(localStorage.getItem(key) || 'null');
-            return Array.isArray(rows) ? {...initial, rows} : initial;
+            // 元ツールと同じく、入力のある行が1つもなければ空の5行で始める
+            return Array.isArray(rows) && rows.some(hasInput) ? {...initial, rows} : initial;
         } catch (e) {
             return initial;
         }
@@ -138,7 +143,7 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
 
     const breakTime = parseFloat(draft.breakTime) || 0;
     const work = workHours(draft.workStart, draft.workEnd, breakTime);
-    const total = draft.rows.reduce((sum, row) => sum + hours(row), 0);
+    const total = sumHours(draft.rows);
     const set = (key: keyof Draft) => (e: React.ChangeEvent<HTMLInputElement>) => setDraft({...draft, [key]: e.target.value});
 
     const save = () => {
@@ -151,12 +156,12 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
             enqueueSnackbar(error, {variant: 'warning'});
             return;
         }
-        const rows = draft.rows.filter((row) => row.title.trim() && hours(row) > 0);
+        const rows = draft.rows.map(trimRow).filter((row) => row.title && hours(row) > 0);
         if (rows.length === 0) {
             enqueueSnackbar('一時保存するデータがありません', {variant: 'warning'});
             return;
         }
-        const saved = rows.reduce((sum, row) => sum + hours(row), 0);
+        const saved = sumHours(rows);
         if (work !== null && saved < work) {
             enqueueSnackbar(`実績時間が${(work - saved).toFixed(2)}時間足りていません`, {variant: 'warning'});
         }
@@ -183,7 +188,7 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
     };
 
     const exportCsv = () => {
-        const rows = draft.rows.filter((row) => row.title.trim() || hours(row) > 0);
+        const rows = draft.rows.map(trimRow).filter((row) => row.title || hours(row) > 0);
         if (rows.length === 0) {
             enqueueSnackbar('出力するデータがありません', {variant: 'warning'});
             return;
@@ -194,6 +199,7 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
             rows.map((row) => ({...row, date: draft.date, name, time: hours(row), timestamp}))
         );
         downloadText(csvFileName(name, draft.date), csv);
+        enqueueSnackbar('CSVを出力しました', {variant: 'success'});
     };
 
     const copy = (text: string, label: string) =>
@@ -220,14 +226,14 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
                     <Typography style={{marginBottom: 6}}>({weekday(draft.date)})</Typography>
                     <TextField
                         label="開始"
-                        type="time"
+                        placeholder="09:00"
                         value={draft.workStart}
                         onChange={set('workStart')}
                         InputLabelProps={{shrink: true}}
                     />
                     <TextField
                         label="終了"
-                        type="time"
+                        placeholder="09:00"
                         value={draft.workEnd}
                         onChange={set('workEnd')}
                         InputLabelProps={{shrink: true}}
@@ -305,5 +311,3 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
         </>
     );
 };
-
-const formatClock = (date: Date) => `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;

@@ -1,4 +1,5 @@
 // Settings and pure logic of the daily report (ported from daily_report_tool.html).
+import * as JSON5 from 'json5';
 
 export interface ReportGroup {
     id: string;
@@ -88,10 +89,12 @@ const defaultGroupOf = (settings: ReportSettings, category: string): string => {
     return found ? groupName(settings, found.defaultGroupId) : '';
 };
 
-// 分類まで一致する設定を優先し、なければカテゴリ全体（分類が空）の設定を使う
+export const findPairOverride = (overrides: SubcategoryWorkOverride[], category: string, subcategory: string) =>
+    overrides.find((o) => o.category === category && (o.subcategory || '') === subcategory);
+
+// 分類のないカテゴリは分類を空文字として設定する
 const findOverride = (settings: ReportSettings, category: string, subcategory: string) =>
-    settings.subcategoryWorkOverrides.find((o) => o.category === category && (o.subcategory || '') === subcategory) ||
-    settings.subcategoryWorkOverrides.find((o) => o.category === category && !o.subcategory);
+    findPairOverride(settings.subcategoryWorkOverrides, category, subcategory);
 
 export const resolveWorkCategoryName = (settings: ReportSettings, category: string, subcategory: string): string => {
     const override = findOverride(settings, category, subcategory);
@@ -107,6 +110,8 @@ export const resolveAssetFlag = (settings: ReportSettings, category: string, sub
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export const formatDate = (date: Date): string => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+
+export const formatClock = (date: Date): string => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 
 export const weekday = (date: string): string => {
     const [y, m, d] = date.split('-').map(Number);
@@ -163,6 +168,13 @@ export const changeCategory = (settings: ReportSettings, row: EntryRow, category
 };
 
 export const hours = (row: EntryRow): number => parseFloat(row.time) || 0;
+
+export const hasInput = (row: EntryRow): boolean =>
+    [row.issueKey, row.title, row.category, row.subcategory, row.group, row.time].some((v) => v !== '');
+
+export const trimRow = (row: EntryRow): EntryRow => ({...row, issueKey: row.issueKey.trim(), title: row.title.trim()});
+
+export const sumHours = (rows: EntryRow[]): number => Math.round(rows.reduce((sum, row) => sum + hours(row), 0) * 100) / 100;
 
 // タイトルを入力した行の必須チェック。エラーがなければ空文字
 export const validateRows = (settings: ReportSettings, rows: EntryRow[]): string => {
@@ -272,15 +284,17 @@ interface NameEntry {
 }
 
 // daily_report_settings_00N.js（var DAILY_REPORT_SETTINGS = {...}）を読み込む。
-// 管理者が自分で選んだファイルを、元ツールと同じくスクリプトとして評価する。
+// 共有フォルダのファイルは誰でも書き換えられるため、スクリプトとして実行せず {...} 部分を JSON5 として読む。
 // sharedMembers は settingsGroupNo で他の設定ファイルも使う人（他の部署にもメンバー登録が必要）
 export const importSettingsJs = (text: string): SettingsFile & {sharedMembers: string[]} => {
-    // tslint:disable-next-line:function-constructor
-    const value: unknown = new Function(
-        `${text}\n;return typeof DAILY_REPORT_SETTINGS === 'undefined' ? undefined : DAILY_REPORT_SETTINGS;`
-    )();
-    if (!value || typeof value !== 'object') {
+    const match = /DAILY_REPORT_SETTINGS\s*=\s*\{/.exec(text);
+    const end = text.lastIndexOf('}');
+    if (!match || end < match.index) {
         throw new Error('DAILY_REPORT_SETTINGS が見つかりません');
+    }
+    const value = JSON5.parse(text.slice(match.index + match[0].length - 1, end + 1));
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        throw new Error('DAILY_REPORT_SETTINGS がオブジェクトではありません');
     }
     const {names, settingsGroupName, ...rest} = value as Record<string, unknown>;
     // APIキーは各自のブラウザに持つもので、部署の設定（メンバー全員が読める）には入れない
@@ -318,12 +332,12 @@ export const copyToClipboard = (text: string): Promise<void> => {
     return copied ? Promise.resolve() : Promise.reject(new Error('copy failed'));
 };
 
-// 勤務時間の表示（例: 8:30（残業 0:30））
+// 勤務時間の表示（例: 8:30（0:30）、括弧内は残業）
 export const formatWorkHours = (value: number): string => {
     const minutes = Math.round(value * 60);
     const hm = (m: number) => `${Math.floor(m / 60)}:${pad(m % 60)}`;
     const overtime = minutes - BASE_WORK_HOURS * 60;
-    return overtime > 0 ? `${hm(minutes)}（残業 ${hm(overtime)}）` : hm(minutes);
+    return overtime > 0 ? `${hm(minutes)}（${hm(overtime)}）` : hm(minutes);
 };
 
 export interface MemberDraft {
@@ -383,9 +397,10 @@ export const parseGroups = (text: string): ReportGroup[] =>
         .filter(([id, name]) => id && name)
         .map(([id, name]) => ({id, name}));
 
+// 名前のないカテゴリだけ捨てる（デフォルトグループは未選択でもよい）
 export const draftCategories = (categories: CategoryDraft[]): ReportCategory[] =>
     categories
-        .filter((c) => c.name.trim() && c.defaultGroupId)
+        .filter((c) => c.name.trim())
         .map((c) => ({name: c.name.trim(), defaultGroupId: c.defaultGroupId, subcategories: nonEmptyLines(c.subcategoriesText)}));
 
 // カテゴリ×分類の組（分類のないカテゴリは分類を空文字としてカテゴリ全体に設定する）
@@ -397,9 +412,6 @@ export const categoryPairs = (categories: ReportCategory[]): Array<{category: st
         ],
         []
     );
-
-export const findPairOverride = (overrides: SubcategoryWorkOverride[], category: string, subcategory: string) =>
-    overrides.find((o) => o.category === category && (o.subcategory || '') === subcategory);
 
 // 開発工数区分が未設定かつ資産フラグ0の組は保存しない（元ツールと同じ）
 export const setOverride = (overrides: SubcategoryWorkOverride[], next: SubcategoryWorkOverride): SubcategoryWorkOverride[] => [
@@ -414,14 +426,17 @@ export const fromSettingsDraft = (draft: SettingsDraft): ReportSettings => {
         throw new Error('その他の設定がJSONオブジェクトではありません');
     }
     const categories = draftCategories(draft.categories);
+    const pairs = categoryPairs(categories);
     return parseSettings(
         JSON.stringify({
             ...other,
             workTime: {start: draft.workStart, end: draft.workEnd, breakTime: parseFloat(draft.breakTime) || 0},
             groups: parseGroups(draft.groupsText),
             categories,
-            // 削除したカテゴリの設定は捨てる（分類が空のカテゴリ全体の設定は残す）
-            subcategoryWorkOverrides: draft.overrides.filter((o) => categories.some((c) => c.name === o.category)),
+            // 元ツールと同じく、表に表示しているカテゴリ×分類の設定だけ残す（見えない設定が効き続けないように）
+            subcategoryWorkOverrides: draft.overrides.filter((o) =>
+                pairs.some((p) => p.category === o.category && p.subcategory === (o.subcategory || ''))
+            ),
         })
     );
 };

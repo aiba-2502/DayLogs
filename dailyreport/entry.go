@@ -31,7 +31,7 @@ func (r *ResolverForDailyReport) SaveDailyReport(ctx context.Context, department
 	if saveAttendance && (!clockPattern.MatchString(workStart) || !clockPattern.MatchString(workEnd) || breakTime < 0) {
 		return nil, errors.New("勤務時間が不正です")
 	}
-	if len(entries) == 0 && !saveAttendance {
+	if len(entries) == 0 {
 		return nil, errors.New("保存するデータがありません")
 	}
 	for i, e := range entries {

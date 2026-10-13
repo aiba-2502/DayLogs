@@ -48,7 +48,7 @@ type RootMutation {
 
     saveDailyReport(departmentId: Int!, date: String!, workStart: String!, workEnd: String!, breakTime: Float!, entries: [InputReportEntry!]!): [ReportEntry!]! @hasRole(role: USER)
     removeReportEntry(id: Int!): ReportEntry! @hasRole(role: USER)
-    createReportDepartment(name: String!, settings: String!): ReportDepartment! @hasRole(role: ADMIN)
+    createReportDepartment(name: String!): ReportDepartment! @hasRole(role: ADMIN)
     updateReportDepartment(id: Int!, name: String!, settings: String!, members: [InputReportMember!]!): ReportDepartment! @hasRole(role: ADMIN)
     removeReportDepartment(id: Int!): ReportDepartment! @hasRole(role: ADMIN)
 }

@@ -27,6 +27,7 @@ import {
     importSettingsJs,
     parseGroups,
     parseSettings,
+    ReportSettings,
     SettingsDraft,
     toSettingsDraft,
 } from './logic';
@@ -57,7 +58,7 @@ export const DailyReportSettingsPage = () => {
     const members = (membersQuery.data && membersQuery.data.reportMembers) || [];
 
     const createDepartment = () =>
-        create({variables: {name: '新しい部署', settings: '{}'}})
+        create({variables: {name: '新しい部署'}})
             .then((result) => {
                 if (result.data) {
                     select(result.data.createReportDepartment.id);
@@ -113,7 +114,7 @@ const DepartmentEditor: React.FC<{
         refetchQueries: [...refetchDepartments, {query: gqlReport.ReportMembers, variables: {departmentId: department.id}}],
         awaitRefetchQueries: true,
     };
-    const [update] = useMutation<UpdateReportDepartment, UpdateReportDepartmentVariables>(
+    const [update, {loading: saving}] = useMutation<UpdateReportDepartment, UpdateReportDepartmentVariables>(
         gqlReport.UpdateReportDepartment,
         refetch
     );
@@ -127,9 +128,9 @@ const DepartmentEditor: React.FC<{
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => setDraft({...draft, [key]: e.target.value});
 
-    const settingsOrError = (): string | null => {
+    const settingsOrError = (): ReportSettings | null => {
         try {
-            return JSON.stringify(fromSettingsDraft(draft));
+            return fromSettingsDraft(draft);
         } catch (e) {
             enqueueSnackbar(`その他の設定(JSON)が不正です: ${e.message}`, {variant: 'warning'});
             return null;
@@ -141,7 +142,7 @@ const DepartmentEditor: React.FC<{
         if (settings === null) {
             return;
         }
-        update({variables: {id: department.id, name: draft.name, settings, members: draft.members}})
+        update({variables: {id: department.id, name: draft.name, settings: JSON.stringify(settings), members: draft.members}})
             .then(() => enqueueSnackbar('日報設定を保存しました', {variant: 'success'}))
             .catch(handleError('日報設定の保存', enqueueSnackbar));
     };
@@ -178,11 +179,8 @@ const DepartmentEditor: React.FC<{
                 name: draft.name,
                 members: draft.members.map((m) => ({name: m.name, freeeEmployeeNo: m.freeeEmployeeNo})),
             };
-            downloadText(
-                'daily_report_settings.js',
-                exportSettingsJs({...file, settings: parseSettings(settings)}),
-                'text/javascript;charset=utf-8;'
-            );
+            downloadText('daily_report_settings.js', exportSettingsJs({...file, settings}), 'text/javascript;charset=utf-8;');
+            enqueueSnackbar('設定ファイルをエクスポートしました', {variant: 'success'});
         }
     };
 
@@ -215,7 +213,7 @@ const DepartmentEditor: React.FC<{
                     <Button variant="outlined" onClick={() => setConfirmRemove(true)}>
                         部署を削除
                     </Button>
-                    <Button variant="contained" color="primary" onClick={save}>
+                    <Button variant="contained" color="primary" onClick={save} disabled={saving}>
                         保存
                     </Button>
                 </div>
@@ -230,14 +228,14 @@ const DepartmentEditor: React.FC<{
                 <div className={classes.row}>
                     <TextField
                         label="開始"
-                        type="time"
+                        placeholder="09:00"
                         value={draft.workStart}
                         onChange={text('workStart')}
                         InputLabelProps={{shrink: true}}
                     />
                     <TextField
                         label="終了"
-                        type="time"
+                        placeholder="09:00"
                         value={draft.workEnd}
                         onChange={text('workEnd')}
                         InputLabelProps={{shrink: true}}
