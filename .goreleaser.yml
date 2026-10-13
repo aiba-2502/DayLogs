@@ -31,7 +31,6 @@ builds:
     ldflags: ["-s","-w","-linkmode","external","-extldflags","-static","-X main.BuildDate={{.Date}}","-X main.BuildMode=prod","-X main.BuildCommit={{.Commit}}","-X main.BuildVersion={{.Version}}"]
 archives:
   - files:
-      - LICENSE
       - README.md
       - .env.sample
     name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{- if eq .Arch "386" }}i386{{- else }}{{ .Arch }}{{ end }}{{ if .Arm }}v{{ .Arm }}{{ end }}'

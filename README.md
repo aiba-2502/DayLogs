@@ -1,62 +1,57 @@
-<p align="center">
-    <a href="https://github.com/traggo/logo">
-        <img height="300px" src="https://raw.githubusercontent.com/traggo/logo/master/logo.png" />
-    </a>
-</p>
+<h1 align="center">DayLogs</h1>
+<p align="center"><i>タグベースの社内向け時間記録ツール</i></p>
 
-<h1 align="center">traggo/server</h1>
-<p align="center"><i>tag-based time tracking</i></p>
+Based on https://github.com/traggo/server, with custom modifications.
 
-<p align="center">
-    <a href="https://travis-ci.com/traggo/server">
-        <img alt="Build Status" src="https://travis-ci.com/traggo/server.svg?branch=master">
-    </a>
-     <a href="https://codecov.io/gh/traggo/server">
-        <img alt="codecov" src="https://codecov.io/gh/traggo/server/branch/master/graph/badge.svg">
-    </a>
-    <a href="https://hub.docker.com/r/traggo/server">
-        <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/traggo/server.svg">
-    </a>
-    <a href="https://github.com/traggo/server/releases/latest">
-        <img alt="latest release" src="https://img.shields.io/github/release/traggo/server.svg">
-    </a>
-</p>
+DayLogs ではタスクを作らず、[タグ](https://traggo.net/terminology/#tag)を付けた[時間記録](https://traggo.net/terminology/#timespan)だけで作業を管理します。
+例えば案件ごとに `proj` タグ、作業の種類ごとに `type` タグ（`開発`、`レビュー`、`会議` など）を付けておけば、
+ダッシュボードで「どの案件・どの作業にどれだけ時間を使ったか」を集計できます。タグの付け方は自由です。
 
+データはすべて自前でホストするサーバー上に保存され、第三者に渡ることはありません。
 
-Traggo is a tag-based time tracking tool. In Traggo there are no tasks, only [tagged](https://traggo.net/terminology/#tag) [time spans](https://traggo.net/terminology/#timespan).
+## 機能
 
-With [tags](https://traggo.net/terminology/#tag), Traggo tries to be as customizable as possible, f.ex. if you work on different projects you could add a `project`-tag.
-If you like to see statistics from the different things you do, you could add a `type`-tag with values like `email`, `programming`, `meeting`. 
-You can do it just as you like.
+* タグ付きの時間記録（タイマーの開始・停止、手動入力）
+* リスト表示とカレンダー表示
+* グラフや表を自由に配置できるダッシュボード
+* シンプルなユーザー管理
 
-If you want to use Traggo, you need to host it yourself. This way, you have the full control over your data and no third-party
-may be able to read it. Have a look at our [Install Guide](https://traggo.net/install/).
+## traggo からの主な変更点
 
-## Features
-
-* easy to setup
-* time tracking (obviously)
-* customizable dashboards with diagrams
-* a list and calendar view of the tracked time
-* sleek web ui with multiple themes
-* simple user management
+* UI をすべて日本語化
+* 日付表示に日本語ロケールを追加し、デフォルトに設定
+* First Gaming のロゴカラーをもとにしたテーマを追加し、デフォルトに設定
 
 ---
 
-<a href="./.github/traggo_list.png">
-    <img width="265" alt="traggo list" src=".github/traggo_list.png">
+<a href="./.github/daylogs_list.png">
+    <img width="265" alt="リスト表示" src=".github/daylogs_list.png">
 </a>
-<a href=".github/traggo_calendar.png">
-    <img width="265" alt="traggo list" src=".github/traggo_calendar.png">
+<a href=".github/daylogs_calendar.png">
+    <img width="265" alt="カレンダー表示" src=".github/daylogs_calendar.png">
 </a>
-<a href=".github/traggo_dashboard.png">
-    <img width="265" alt="traggo list" src=".github/traggo_dashboard.png">
+<a href=".github/daylogs_dashboard.png">
+    <img width="265" alt="ダッシュボード" src=".github/daylogs_dashboard.png">
 </a>
 
-[Install](https://traggo.net/install/) ᛫
-[Configuration](https://traggo.net/config/) ᛫
-[Setup Dev Environment](https://traggo.net/dev/setup/)
+## 起動方法
 
-## Versioning
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the
-[tags on this repository](https://github.com/traggo/server/tags).
+```bash
+docker compose up --build -d
+```
+
+http://localhost:3030 を開き、初期ユーザー `admin` / `admin` でログインします。
+初回ログイン後、パスワードは必ず変更してください。データ（SQLite）は `.traggodata/` に保存されます。
+
+設定は環境変数 `TRAGGO_*` で変更できます。項目は [.env.sample](.env.sample) と
+traggo の [Configuration](https://traggo.net/config/) を参照してください。
+
+## 開発
+
+Go、Node.js、yarn が必要です。手順の詳細は traggo の [Setup Dev Environment](https://traggo.net/dev/setup/) を参照してください。
+
+```bash
+make download-tools install generate   # ツール・依存関係の導入とコード生成
+make build-bin-local                   # UI をビルドしてバイナリに埋め込む
+make lint test
+```
