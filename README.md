@@ -1,3 +1,9 @@
+<p align="center">
+    <a href="https://github.com/traggo/logo">
+        <img height="300px" src="https://raw.githubusercontent.com/traggo/logo/master/logo.png" />
+    </a>
+</p>
+
 <h1 align="center">DayLogs</h1>
 <p align="center"><i>タグベースの社内向け時間記録ツール</i></p>
 
