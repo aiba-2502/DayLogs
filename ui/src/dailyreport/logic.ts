@@ -92,9 +92,11 @@ const defaultGroupOf = (settings: ReportSettings, category: string): string => {
 export const findPairOverride = (overrides: SubcategoryWorkOverride[], category: string, subcategory: string) =>
     overrides.find((o) => o.category === category && (o.subcategory || '') === subcategory);
 
-// 分類のないカテゴリは分類を空文字として設定する
+// 分類まで一致する設定を優先し、なければカテゴリ全体（分類が空）の設定を使う。
+// 分類のないカテゴリでも分類は自由入力できるため、その行にもカテゴリ全体の設定を適用する
 const findOverride = (settings: ReportSettings, category: string, subcategory: string) =>
-    findPairOverride(settings.subcategoryWorkOverrides, category, subcategory);
+    findPairOverride(settings.subcategoryWorkOverrides, category, subcategory) ||
+    findPairOverride(settings.subcategoryWorkOverrides, category, '');
 
 export const resolveWorkCategoryName = (settings: ReportSettings, category: string, subcategory: string): string => {
     const override = findOverride(settings, category, subcategory);
@@ -120,7 +122,7 @@ export const weekday = (date: string): string => {
 };
 
 export const toHalfWidth = (text: string): string =>
-    text.replace(/[０-９．]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
+    text.replace(/[０-９．：]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
 
 const minutesOf = (clock: string): number | null => {
     const match = /^(\d{1,2}):(\d{2})$/.exec(clock.trim());
@@ -216,7 +218,7 @@ export const markdown = (date: string, workStart: string, workEnd: string, break
         '',
     ].join('\n');
 
-export interface CsvEntry {
+interface CsvEntry {
     date: string;
     name: string;
     issueKey: string;
@@ -271,7 +273,7 @@ export const downloadText = (fileName: string, text: string, type = 'text/csv;ch
     link.click();
 };
 
-export interface SettingsFile {
+interface SettingsFile {
     name: string;
     members: Array<{name: string; freeeEmployeeNo: string}>;
     settings: ReportSettings;
@@ -285,8 +287,12 @@ interface NameEntry {
 
 // daily_report_settings_00N.js（var DAILY_REPORT_SETTINGS = {...}）を読み込む。
 // 共有フォルダのファイルは誰でも書き換えられるため、スクリプトとして実行せず {...} 部分を JSON5 として読む。
+// 元ツールと同じく、ファイルにある項目だけ current を置き換える（members はファイルに names がなければ null）。
 // sharedMembers は settingsGroupNo で他の設定ファイルも使う人（他の部署にもメンバー登録が必要）
-export const importSettingsJs = (text: string): SettingsFile & {sharedMembers: string[]} => {
+export const importSettingsJs = (
+    text: string,
+    current: ReportSettings
+): {name: string; members: SettingsFile['members'] | null; sharedMembers: string[]; settings: ReportSettings} => {
     const match = /DAILY_REPORT_SETTINGS\s*=\s*\{/.exec(text);
     const end = text.lastIndexOf('}');
     if (!match || end < match.index) {
@@ -307,9 +313,9 @@ export const importSettingsJs = (text: string): SettingsFile & {sharedMembers: s
     const entries = asArray<string | NameEntry>(names).map((n): NameEntry => (typeof n === 'string' ? {name: n} : n));
     return {
         name: typeof settingsGroupName === 'string' ? settingsGroupName : '',
-        members: entries.map((n) => ({name: n.name, freeeEmployeeNo: n.freeeEmployeeNo || ''})),
+        members: Array.isArray(names) ? entries.map((n) => ({name: n.name, freeeEmployeeNo: n.freeeEmployeeNo || ''})) : null,
         sharedMembers: entries.filter((n) => n.settingsGroupNo).map((n) => `${n.name}（${n.settingsGroupNo}）`),
-        settings: parseSettings(JSON.stringify(rest)),
+        settings: parseSettings(JSON.stringify({...current, ...rest})),
     };
 };
 
@@ -419,12 +425,25 @@ export const setOverride = (overrides: SubcategoryWorkOverride[], next: Subcateg
     ...(next.workCategoryId || next.assetFlag === '1' ? [next] : []),
 ];
 
-// 編集中の状態から保存する設定を作る。otherJson が不正なら例外
-export const fromSettingsDraft = (draft: SettingsDraft): ReportSettings => {
-    const other = JSON.parse(draft.otherJson.trim() || '{}');
-    if (!other || typeof other !== 'object' || Array.isArray(other)) {
-        throw new Error('その他の設定がJSONオブジェクトではありません');
+const parseOtherJson = (json: string): Record<string, unknown> => {
+    let other: unknown;
+    try {
+        other = JSON.parse(json.trim() || '{}');
+    } catch (e) {
+        throw new Error(`その他の設定(JSON)が不正です: ${e.message}`);
     }
+    if (!other || typeof other !== 'object' || Array.isArray(other)) {
+        throw new Error('その他の設定(JSON)がオブジェクトではありません');
+    }
+    return other as Record<string, unknown>;
+};
+
+// 編集中の状態から保存する設定を作る。勤務時間や otherJson が不正なら例外
+export const fromSettingsDraft = (draft: SettingsDraft): ReportSettings => {
+    if (workHours(draft.workStart, draft.workEnd, 0) === null) {
+        throw new Error('勤務時間デフォルトは 09:00 の形式で入力してください');
+    }
+    const other = parseOtherJson(draft.otherJson);
     const categories = draftCategories(draft.categories);
     const pairs = categoryPairs(categories);
     return parseSettings(

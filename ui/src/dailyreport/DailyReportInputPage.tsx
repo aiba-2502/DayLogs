@@ -35,6 +35,7 @@ import {
     parseSettings,
     ReportSettings,
     sumHours,
+    toHalfWidth,
     trimRow,
     validateRows,
     weekday,
@@ -145,10 +146,17 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
     const work = workHours(draft.workStart, draft.workEnd, breakTime);
     const total = sumHours(draft.rows);
     const set = (key: keyof Draft) => (e: React.ChangeEvent<HTMLInputElement>) => setDraft({...draft, [key]: e.target.value});
+    // 全角で入力された時刻も受け付ける
+    const clock = (key: 'workStart' | 'workEnd') => (e: React.ChangeEvent<HTMLInputElement>) =>
+        setDraft({...draft, [key]: toHalfWidth(e.target.value).trim()});
 
     const save = () => {
         if (!draft.date) {
             enqueueSnackbar('日付を入力してください', {variant: 'warning'});
+            return;
+        }
+        if (draft.workStart && draft.workEnd && work === null) {
+            enqueueSnackbar('勤務時間は 09:00 の形式で入力してください', {variant: 'warning'});
             return;
         }
         const error = validateRows(settings, draft.rows);
@@ -228,14 +236,14 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
                         label="開始"
                         placeholder="09:00"
                         value={draft.workStart}
-                        onChange={set('workStart')}
+                        onChange={clock('workStart')}
                         InputLabelProps={{shrink: true}}
                     />
                     <TextField
                         label="終了"
-                        placeholder="09:00"
+                        placeholder="18:00"
                         value={draft.workEnd}
-                        onChange={set('workEnd')}
+                        onChange={clock('workEnd')}
                         InputLabelProps={{shrink: true}}
                     />
                     <Button

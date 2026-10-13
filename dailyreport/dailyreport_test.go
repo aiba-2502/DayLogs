@@ -151,6 +151,9 @@ func TestUpdateReportDepartment_savesSettingsAndMembers(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, saved, 2)
 	require.Equal(t, "鈴木", saved[0].Name)
+	require.Equal(t, "", saved[0].FreeeEmployeeNo, "freee number is only for admins")
+	saved, _ = r.ReportMembers(fake.UserWithPerm(3, true), dep)
+	require.Equal(t, "8", saved[0].FreeeEmployeeNo)
 	_, err = r.member(1, dep)
 	require.Equal(t, errNoAccess, err)
 }

@@ -11,9 +11,10 @@ import (
 	"github.com/traggo/server/model"
 )
 
-// ReportMembers returns the members of a department.
+// ReportMembers returns the members of a department. Only admins get the freee employee numbers.
 func (r *ResolverForDailyReport) ReportMembers(ctx context.Context, departmentID int) ([]*gqlmodel.ReportMember, error) {
-	if err := r.canRead(auth.GetUser(ctx), departmentID); err != nil {
+	user := auth.GetUser(ctx)
+	if err := r.canRead(user, departmentID); err != nil {
 		return nil, err
 	}
 	var members []model.ReportMember
@@ -22,7 +23,11 @@ func (r *ResolverForDailyReport) ReportMembers(ctx context.Context, departmentID
 	}
 	result := []*gqlmodel.ReportMember{}
 	for _, m := range members {
-		result = append(result, &gqlmodel.ReportMember{ID: m.ID, UserID: m.UserID, Name: m.Name, FreeeEmployeeNo: m.FreeeEmployeeNo})
+		member := &gqlmodel.ReportMember{ID: m.ID, UserID: m.UserID, Name: m.Name}
+		if user.Admin {
+			member.FreeeEmployeeNo = m.FreeeEmployeeNo
+		}
+		result = append(result, member)
 	}
 	return result, nil
 }

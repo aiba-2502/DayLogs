@@ -29,6 +29,7 @@ import {
     parseSettings,
     ReportSettings,
     SettingsDraft,
+    toHalfWidth,
     toSettingsDraft,
 } from './logic';
 
@@ -127,12 +128,15 @@ const DepartmentEditor: React.FC<{
     const text = (key: 'name' | 'workStart' | 'workEnd' | 'breakTime' | 'groupsText' | 'otherJson') => (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => setDraft({...draft, [key]: e.target.value});
+    // 全角で入力された時刻も受け付ける
+    const clock = (key: 'workStart' | 'workEnd') => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        setDraft({...draft, [key]: toHalfWidth(e.target.value).trim()});
 
     const settingsOrError = (): ReportSettings | null => {
         try {
             return fromSettingsDraft(draft);
         } catch (e) {
-            enqueueSnackbar(`その他の設定(JSON)が不正です: ${e.message}`, {variant: 'warning'});
+            enqueueSnackbar(e.message, {variant: 'warning'});
             return null;
         }
     };
@@ -147,14 +151,25 @@ const DepartmentEditor: React.FC<{
             .catch(handleError('日報設定の保存', enqueueSnackbar));
     };
 
+    // 編集中の内容。不正な入力があれば保存済みの設定
+    const currentSettings = (): ReportSettings => {
+        try {
+            return fromSettingsDraft(draft);
+        } catch (e) {
+            return parseSettings(department.settings);
+        }
+    };
+
     const importFile = (file: File) =>
         new Response(file).text().then((content) => {
             try {
-                const imported = importSettingsJs(content);
+                const imported = importSettingsJs(content, currentSettings());
                 // 同じ名前のメンバーは、割り当て済みのユーザーを引き継ぐ
                 const userIdOf = (name: string) => (draft.members.find((m) => m.name === name) || {userId: 0}).userId;
-                const importedMembers = imported.members.map((m) => ({...m, userId: userIdOf(m.name)}));
-                setDraft(toSettingsDraft(imported.name || draft.name, imported.settings, importedMembers));
+                const nextMembers = imported.members
+                    ? imported.members.map((m) => ({...m, userId: userIdOf(m.name)}))
+                    : draft.members;
+                setDraft(toSettingsDraft(imported.name || draft.name, imported.settings, nextMembers));
                 enqueueSnackbar('インポートしました。内容を確認して「保存」してください', {variant: 'info'});
                 if (imported.sharedMembers.length) {
                     enqueueSnackbar(
@@ -180,7 +195,7 @@ const DepartmentEditor: React.FC<{
                 members: draft.members.map((m) => ({name: m.name, freeeEmployeeNo: m.freeeEmployeeNo})),
             };
             downloadText('daily_report_settings.js', exportSettingsJs({...file, settings}), 'text/javascript;charset=utf-8;');
-            enqueueSnackbar('設定ファイルをエクスポートしました', {variant: 'success'});
+            enqueueSnackbar('設定をエクスポートしました', {variant: 'success'});
         }
     };
 
@@ -230,14 +245,14 @@ const DepartmentEditor: React.FC<{
                         label="開始"
                         placeholder="09:00"
                         value={draft.workStart}
-                        onChange={text('workStart')}
+                        onChange={clock('workStart')}
                         InputLabelProps={{shrink: true}}
                     />
                     <TextField
                         label="終了"
-                        placeholder="09:00"
+                        placeholder="18:00"
                         value={draft.workEnd}
-                        onChange={text('workEnd')}
+                        onChange={clock('workEnd')}
                         InputLabelProps={{shrink: true}}
                     />
                     <TextField
