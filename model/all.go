@@ -13,5 +13,9 @@ func All() []interface{} {
 		new(DashboardEntry),
 		new(DashboardTagFilter),
 		new(DashboardRange),
+		new(ReportDepartment),
+		new(ReportMember),
+		new(ReportEntry),
+		new(ReportAttendance),
 	}
 }

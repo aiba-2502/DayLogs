@@ -18,6 +18,8 @@ import LabelIcon from '@material-ui/icons/Label';
 import DashboardManageIcon from '@material-ui/icons/ListAlt';
 import TimeLineIcon from '@material-ui/icons/Timeline';
 import CalendarIcon from '@material-ui/icons/CalendarToday';
+import ReportIcon from '@material-ui/icons/Assignment';
+import ReportSettingsIcon from '@material-ui/icons/Description';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import {ListSubheader, Menu} from '@material-ui/core';
@@ -168,6 +170,15 @@ export const Page: React.FC = ({children}) => {
                 </ListItem>
             </List>
             <Divider />
+            <List subheader={<ListSubheader>日報</ListSubheader>} dense={true}>
+                <ListItem button component={routerLink('/report/input')}>
+                    <ListItemIcon>
+                        <ReportIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="日報入力" />
+                </ListItem>
+            </List>
+            <Divider />
             <List subheader={<ListSubheader>ユーザー</ListSubheader>} dense={true}>
                 <ListItem button component={routerLink('/user/tags')}>
                     <ListItemIcon>
@@ -197,6 +208,12 @@ export const Page: React.FC = ({children}) => {
                                 <UsersIcon />
                             </ListItemIcon>
                             <ListItemText primary="ユーザー" />
+                        </ListItem>
+                        <ListItem button component={routerLink('/admin/report-settings')}>
+                            <ListItemIcon>
+                                <ReportSettingsIcon />
+                            </ListItemIcon>
+                            <ListItemText primary="日報設定" />
                         </ListItem>
                     </List>
                 </>
@@ -236,6 +253,12 @@ export const Page: React.FC = ({children}) => {
                             </Route>
                             <Route exact path="/admin/users">
                                 管理 / ユーザー
+                            </Route>
+                            <Route exact path="/admin/report-settings">
+                                管理 / 日報設定
+                            </Route>
+                            <Route exact path="/report/input">
+                                日報 / 入力
                             </Route>
                             <Route exact path="/dashboards">
                                 ダッシュボード / 管理

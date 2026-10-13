@@ -45,6 +45,13 @@ type RootMutation {
     removeDashboardEntry(id: Int!): DashboardEntry! @hasRole(role: USER)
 
     setUserSettings(settings: InputUserSettings!): UserSettings! @hasRole(role: USER)
+
+    saveDailyReport(departmentId: Int!, date: String!, workStart: String!, workEnd: String!, breakTime: Float!, entries: [InputReportEntry!]!): [ReportEntry!]! @hasRole(role: USER)
+    removeReportEntry(id: Int!): ReportEntry! @hasRole(role: USER)
+    createReportDepartment(name: String!, settings: String!): ReportDepartment! @hasRole(role: ADMIN)
+    updateReportDepartment(id: Int!, name: String!, settings: String!): ReportDepartment! @hasRole(role: ADMIN)
+    removeReportDepartment(id: Int!): ReportDepartment! @hasRole(role: ADMIN)
+    setReportMembers(departmentId: Int!, members: [InputReportMember!]!): [ReportMember!]! @hasRole(role: ADMIN)
 }
 
 type RootQuery {
@@ -62,6 +69,10 @@ type RootQuery {
     version: Version!
     dashboards: [Dashboard!] @hasRole(role: USER)
     userSettings: UserSettings!
+    reportDepartments: [ReportDepartment!]! @hasRole(role: USER)
+    reportMembers(departmentId: Int!): [ReportMember!]! @hasRole(role: USER)
+    reportEntries(departmentId: Int!, from: String, to: String, userId: Int): [ReportEntry!]! @hasRole(role: USER)
+    reportAttendances(departmentId: Int!, from: String, to: String, userId: Int): [ReportAttendance!]! @hasRole(role: USER)
 }
 
 input InputUserSettings {
@@ -296,4 +307,61 @@ enum DashboardSize {
 
 enum EntryType {
     PieChart, BarChart, StackedBarChart, LineChart, VerticalTable, HorizontalTable
+}
+
+type ReportDepartment {
+    id: Int!
+    name: String!
+    """master data of the department (categories, groups, ...) as JSON"""
+    settings: String!
+}
+
+type ReportMember {
+    id: Int!
+    departmentId: Int!
+    userId: Int!
+    name: String!
+    freeeEmployeeNo: String!
+}
+
+input InputReportMember {
+    userId: Int!
+    name: String!
+    freeeEmployeeNo: String!
+}
+
+type ReportEntry {
+    id: Int!
+    departmentId: Int!
+    userId: Int!
+    date: String!
+    name: String!
+    recordType: String!
+    issueKey: String!
+    title: String!
+    category: String!
+    subcategory: String!
+    group: String!
+    time: Float!
+    workCategory: String!
+    assetFlag: String!
+    ratio: Float
+    updatedAt: Time!
+}
+
+input InputReportEntry {
+    issueKey: String!
+    title: String!
+    category: String!
+    subcategory: String!
+    group: String!
+    time: Float!
+}
+
+type ReportAttendance {
+    userId: Int!
+    date: String!
+    workStart: String!
+    workEnd: String!
+    breakTime: Float!
 }
