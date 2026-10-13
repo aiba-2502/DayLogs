@@ -1,0 +1,30 @@
+# さくらの VPS 用。/opt/daylogs に置き、同じ場所の .env に DOMAIN・TRAGGO_DEFAULT_USER_NAME・TRAGGO_DEFAULT_USER_PASS を書く。
+# daylogs:current は deploy.sh が GHCR から取得したイメージに付ける名前。
+services:
+  traggo:
+    image: daylogs:current
+    restart: unless-stopped
+    environment:
+      TRAGGO_DEFAULT_USER_NAME: ${TRAGGO_DEFAULT_USER_NAME}
+      TRAGGO_DEFAULT_USER_PASS: ${TRAGGO_DEFAULT_USER_PASS}
+      TRAGGO_LOG_LEVEL: info
+    ports:
+      - 127.0.0.1:3030:3030
+    volumes:
+      - ./data:/opt/traggo/data
+  caddy:
+    image: caddy:2.10
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

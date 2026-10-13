@@ -1,6 +1,9 @@
 name: build
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,11 +23,53 @@ jobs:
           NODE_OPTIONS: --openssl-legacy-provider
       - run: make lint
       - run: make test
-      - if: startsWith(github.ref, 'refs/tags/v')
-        run: echo "$DOCKER_PASS" | docker login --username "traggoci" --password-stdin
+
+  # main への push で、イメージを GHCR に登録してさくらの VPS に反映する（サーバー側は deploy/deploy.sh）
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.dev
+          push: true
+          tags: ${{ env.IMAGE }}:${{ github.sha }},${{ env.IMAGE }}:latest
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          provenance: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      # GHCR を読むトークンは、このジョブの間だけ有効な GITHUB_TOKEN を標準入力で渡す
+      - name: Deploy to server
         env:
-          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
-      - if: startsWith(github.ref, 'refs/tags/v')
-        run: make release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s' "$TOKEN" | ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes "deploy@$HOST" "$GITHUB_SHA $GITHUB_ACTOR"
+      # 無料枠（500MB）に収まるよう、直近10版だけ残す
+      - uses: actions/delete-package-versions@v5
+        with:
+          package-name: daylogs
+          package-type: container
+          min-versions-to-keep: 10
