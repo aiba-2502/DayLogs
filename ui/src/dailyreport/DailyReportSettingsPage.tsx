@@ -125,7 +125,7 @@ const DepartmentEditor: React.FC<{
         awaitRefetchQueries: true,
     });
     const set = <K extends keyof SettingsDraft>(key: K) => (value: SettingsDraft[K]) => setDraft({...draft, [key]: value});
-    const text = (key: 'name' | 'workStart' | 'workEnd' | 'breakTime' | 'groupsText' | 'otherJson') => (
+    const text = (key: 'name' | 'breakTime' | 'groupsText' | 'otherJson') => (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => setDraft({...draft, [key]: e.target.value});
     // 全角で入力された時刻も受け付ける
@@ -151,19 +151,15 @@ const DepartmentEditor: React.FC<{
             .catch(handleError('日報設定の保存', enqueueSnackbar));
     };
 
-    // 編集中の内容。不正な入力があれば保存済みの設定
-    const currentSettings = (): ReportSettings => {
-        try {
-            return fromSettingsDraft(draft);
-        } catch (e) {
-            return parseSettings(department.settings);
-        }
-    };
-
     const importFile = (file: File) =>
         new Response(file).text().then((content) => {
             try {
-                const imported = importSettingsJs(content, currentSettings());
+                // 編集中の内容に重ねる。編集中の内容に誤りがあれば、そのメッセージを出して取り込まない
+                const current = settingsOrError();
+                if (current === null) {
+                    return;
+                }
+                const imported = importSettingsJs(content, current);
                 // 同じ名前のメンバーは、割り当て済みのユーザーを引き継ぐ
                 const userIdOf = (name: string) => (draft.members.find((m) => m.name === name) || {userId: 0}).userId;
                 const nextMembers = imported.members
