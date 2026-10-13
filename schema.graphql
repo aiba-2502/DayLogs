@@ -49,9 +49,8 @@ type RootMutation {
     saveDailyReport(departmentId: Int!, date: String!, workStart: String!, workEnd: String!, breakTime: Float!, entries: [InputReportEntry!]!): [ReportEntry!]! @hasRole(role: USER)
     removeReportEntry(id: Int!): ReportEntry! @hasRole(role: USER)
     createReportDepartment(name: String!, settings: String!): ReportDepartment! @hasRole(role: ADMIN)
-    updateReportDepartment(id: Int!, name: String!, settings: String!): ReportDepartment! @hasRole(role: ADMIN)
+    updateReportDepartment(id: Int!, name: String!, settings: String!, members: [InputReportMember!]!): ReportDepartment! @hasRole(role: ADMIN)
     removeReportDepartment(id: Int!): ReportDepartment! @hasRole(role: ADMIN)
-    setReportMembers(departmentId: Int!, members: [InputReportMember!]!): [ReportMember!]! @hasRole(role: ADMIN)
 }
 
 type RootQuery {
@@ -69,7 +68,8 @@ type RootQuery {
     version: Version!
     dashboards: [Dashboard!] @hasRole(role: USER)
     userSettings: UserSettings!
-    reportDepartments: [ReportDepartment!]! @hasRole(role: USER)
+    """departments of the current user, or all departments for admins with all: true"""
+    reportDepartments(all: Boolean!): [ReportDepartment!]! @hasRole(role: USER)
     reportMembers(departmentId: Int!): [ReportMember!]! @hasRole(role: USER)
     reportEntries(departmentId: Int!, userId: Int!): [ReportEntry!]! @hasRole(role: USER)
     reportAttendances(departmentId: Int!, userId: Int!): [ReportAttendance!]! @hasRole(role: USER)

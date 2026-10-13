@@ -107,13 +107,17 @@ func TestReportDepartments_onlyMembershipsForUsers(t *testing.T) {
 	_, err = r.CreateReportDepartment(fake.User(3), "壊れた設定", `[1]`)
 	require.Error(t, err)
 
-	departments, err := r.ReportDepartments(fake.UserWithPerm(1, false))
+	departments, err := r.ReportDepartments(fake.UserWithPerm(1, false), true)
 	require.NoError(t, err)
 	require.Len(t, departments, 1)
 	require.Equal(t, "開発室", departments[0].Name)
-	departments, err = r.ReportDepartments(fake.UserWithPerm(3, true))
+	departments, err = r.ReportDepartments(fake.UserWithPerm(3, true), true)
 	require.NoError(t, err)
 	require.Len(t, departments, 2)
+	// 日報入力では管理者でも所属する部署だけ
+	departments, err = r.ReportDepartments(fake.UserWithPerm(3, true), false)
+	require.NoError(t, err)
+	require.Empty(t, departments)
 }
 
 func TestRemoveReportDepartment_removesData(t *testing.T) {
@@ -131,21 +135,41 @@ func TestRemoveReportDepartment_removesData(t *testing.T) {
 	}
 }
 
-func TestSetReportMembers_validates(t *testing.T) {
+func TestUpdateReportDepartment_savesSettingsAndMembers(t *testing.T) {
+	db, r, dep := setup(t)
+	defer db.Close()
+	members := []*gqlmodel.InputReportMember{{UserID: 3, Name: " 鈴木 ", FreeeEmployeeNo: "8"}, {UserID: 0, Name: "外部"}}
+
+	_, err := r.UpdateReportDepartment(fake.User(3), dep, "営業", `{"groups":[]}`, members)
+	require.NoError(t, err)
+	departments, _ := r.ReportDepartments(fake.UserWithPerm(3, false), false)
+	require.Equal(t, []*gqlmodel.ReportDepartment{{ID: dep, Name: "営業", Settings: `{"groups":[]}`}}, departments)
+	saved, err := r.ReportMembers(fake.UserWithPerm(3, false), dep)
+	require.NoError(t, err)
+	require.Len(t, saved, 2)
+	require.Equal(t, "鈴木", saved[0].Name)
+	_, err = r.member(1, dep)
+	require.Equal(t, errNoAccess, err)
+}
+
+func TestUpdateReportDepartment_rejectsInvalidMembersWithoutSaving(t *testing.T) {
 	db, r, dep := setup(t)
 	defer db.Close()
 
-	_, err := r.SetReportMembers(fake.User(3), dep, []*gqlmodel.InputReportMember{{UserID: 1, Name: "山田"}, {UserID: 0, Name: "山田"}})
-	require.Error(t, err)
-	_, err = r.SetReportMembers(fake.User(3), dep, []*gqlmodel.InputReportMember{{UserID: 1, Name: "山田"}, {UserID: 1, Name: "田中"}})
-	require.Error(t, err)
-	_, err = r.SetReportMembers(fake.User(3), dep, []*gqlmodel.InputReportMember{{UserID: 99, Name: "田中"}})
+	for _, members := range [][]*gqlmodel.InputReportMember{
+		{{UserID: 1, Name: "山田"}, {UserID: 0, Name: "山田"}},
+		{{UserID: 1, Name: "山田"}, {UserID: 1, Name: "田中"}},
+		{{UserID: 99, Name: "田中"}},
+		{{UserID: 0, Name: " "}},
+	} {
+		_, err := r.UpdateReportDepartment(fake.User(3), dep, "営業", "{}", members)
+		require.Error(t, err)
+	}
+	_, err := r.UpdateReportDepartment(fake.User(3), dep, "", "{}", nil)
 	require.Error(t, err)
 
-	members, err := r.SetReportMembers(fake.User(3), dep, []*gqlmodel.InputReportMember{{UserID: 3, Name: " 鈴木 ", FreeeEmployeeNo: "8"}, {UserID: 0, Name: "外部"}})
-	require.NoError(t, err)
+	departments, _ := r.ReportDepartments(fake.UserWithPerm(1, false), false)
+	require.Equal(t, "開発室", departments[0].Name)
+	members, _ := r.ReportMembers(fake.UserWithPerm(1, false), dep)
 	require.Len(t, members, 2)
-	require.Equal(t, "鈴木", members[0].Name)
-	_, err = r.member(1, dep)
-	require.Equal(t, errNoAccess, err)
 }

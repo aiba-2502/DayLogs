@@ -13,7 +13,6 @@ import {ReportMembers, ReportMembersVariables, ReportMembers_reportMembers} from
 import {CreateReportDepartment, CreateReportDepartmentVariables} from '../gql/__generated__/CreateReportDepartment';
 import {UpdateReportDepartment, UpdateReportDepartmentVariables} from '../gql/__generated__/UpdateReportDepartment';
 import {RemoveReportDepartment, RemoveReportDepartmentVariables} from '../gql/__generated__/RemoveReportDepartment';
-import {SetReportMembers, SetReportMembersVariables} from '../gql/__generated__/SetReportMembers';
 import {CenteredSpinner} from '../common/CenteredSpinner';
 import {ConfirmDialog} from '../common/ConfirmDialog';
 import {handleError} from '../utils/errors';
@@ -32,17 +31,23 @@ import {
     toSettingsDraft,
 } from './logic';
 
+// 日報入力（所属部署）と日報設定（全部署）の両方の一覧を更新する
+const refetchDepartments = [
+    {query: gqlReport.ReportDepartments, variables: {all: true}},
+    {query: gqlReport.ReportDepartments, variables: {all: false}},
+];
+
 export const DailyReportSettingsPage = () => {
     const classes = useReportStyles();
     const {enqueueSnackbar} = useSnackbar();
-    const {departments, department, select, loading} = useReportDepartment();
+    const {departments, department, select, loading} = useReportDepartment(true);
     const usersQuery = useQuery<Users>(gqlUser.Users);
     const membersQuery = useQuery<ReportMembers, ReportMembersVariables>(gqlReport.ReportMembers, {
         variables: {departmentId: department ? department.id : 0},
         skip: !department,
     });
     const [create] = useMutation<CreateReportDepartment, CreateReportDepartmentVariables>(gqlReport.CreateReportDepartment, {
-        refetchQueries: [{query: gqlReport.ReportDepartments}],
+        refetchQueries: refetchDepartments,
         awaitRefetchQueries: true,
     });
     if (loading || usersQuery.loading || membersQuery.loading) {
@@ -105,18 +110,18 @@ const DepartmentEditor: React.FC<{
     const [confirmRemove, setConfirmRemove] = React.useState(false);
     const fileInput = React.useRef<HTMLInputElement>(null);
     const refetch = {
-        refetchQueries: [
-            {query: gqlReport.ReportDepartments},
-            {query: gqlReport.ReportMembers, variables: {departmentId: department.id}},
-        ],
+        refetchQueries: [...refetchDepartments, {query: gqlReport.ReportMembers, variables: {departmentId: department.id}}],
         awaitRefetchQueries: true,
     };
-    const [update] = useMutation<UpdateReportDepartment, UpdateReportDepartmentVariables>(gqlReport.UpdateReportDepartment);
-    const [setMembers] = useMutation<SetReportMembers, SetReportMembersVariables>(gqlReport.SetReportMembers, refetch);
-    const [remove] = useMutation<RemoveReportDepartment, RemoveReportDepartmentVariables>(
-        gqlReport.RemoveReportDepartment,
+    const [update] = useMutation<UpdateReportDepartment, UpdateReportDepartmentVariables>(
+        gqlReport.UpdateReportDepartment,
         refetch
     );
+    // 削除した部署のメンバーは取得できないので、部署の一覧だけ更新する
+    const [remove] = useMutation<RemoveReportDepartment, RemoveReportDepartmentVariables>(gqlReport.RemoveReportDepartment, {
+        refetchQueries: refetchDepartments,
+        awaitRefetchQueries: true,
+    });
     const set = <K extends keyof SettingsDraft>(key: K) => (value: SettingsDraft[K]) => setDraft({...draft, [key]: value});
     const text = (key: 'name' | 'workStart' | 'workEnd' | 'breakTime' | 'groupsText' | 'otherJson') => (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -136,8 +141,7 @@ const DepartmentEditor: React.FC<{
         if (settings === null) {
             return;
         }
-        update({variables: {id: department.id, name: draft.name, settings}})
-            .then(() => setMembers({variables: {departmentId: department.id, members: draft.members}}))
+        update({variables: {id: department.id, name: draft.name, settings, members: draft.members}})
             .then(() => enqueueSnackbar('日報設定を保存しました', {variant: 'success'}))
             .catch(handleError('日報設定の保存', enqueueSnackbar));
     };

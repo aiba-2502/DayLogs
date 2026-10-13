@@ -4,7 +4,11 @@ import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/NativeSelect/NativeSelect';
 import * as gqlReport from '../gql/dailyReport';
-import {ReportDepartments, ReportDepartments_reportDepartments} from '../gql/__generated__/ReportDepartments';
+import {
+    ReportDepartments,
+    ReportDepartments_reportDepartments,
+    ReportDepartmentsVariables,
+} from '../gql/__generated__/ReportDepartments';
 
 const STORAGE_KEY = 'dailyReport.departmentId';
 
@@ -16,9 +20,11 @@ const readSelected = (): number => {
     }
 };
 
-// 部署の一覧と、選択中の部署（このブラウザに記憶）
-export const useReportDepartment = () => {
-    const {data, loading} = useQuery<ReportDepartments>(gqlReport.ReportDepartments);
+// 部署の一覧と、選択中の部署（このブラウザに記憶）。all は管理者の日報設定用で全部署を返す
+export const useReportDepartment = (all: boolean) => {
+    const {data, loading} = useQuery<ReportDepartments, ReportDepartmentsVariables>(gqlReport.ReportDepartments, {
+        variables: {all},
+    });
     const departments = (data && data.reportDepartments) || [];
     const [selectedId, setSelectedId] = React.useState(readSelected);
     const department: ReportDepartments_reportDepartments | undefined =

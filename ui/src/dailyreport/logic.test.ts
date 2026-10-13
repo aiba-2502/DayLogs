@@ -106,6 +106,7 @@ it('imports and exports the settings file', () => {
             settingsGroupName: "開発室",
             names: [{ name: "山田", freeeEmployeeNo: "8" }, "佐藤", { name: "伊藤", settingsGroupNo: "001,002" }],
             groups: [{ id: "001", name: "PoC" }],
+            backlog: { space: "example", apiKey: "secret" },
         };`);
     expect(file.name).toBe('開発室');
     expect(file.members).toEqual([
@@ -116,6 +117,7 @@ it('imports and exports the settings file', () => {
     expect(file.sharedMembers).toEqual(['伊藤（001,002）']);
     expect(file.settings.groups).toEqual([{id: '001', name: 'PoC'}]);
     expect(file.settings.names).toBeUndefined();
+    expect(file.settings.backlog).toEqual({space: 'example'});
     expect(importSettingsJs(exportSettingsJs(file))).toEqual({...file, sharedMembers: []});
     expect(() => importSettingsJs('var X = 1;')).toThrow();
 });

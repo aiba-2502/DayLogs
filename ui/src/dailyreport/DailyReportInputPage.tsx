@@ -39,7 +39,7 @@ import {
 
 export const DailyReportInputPage = () => {
     const classes = useReportStyles();
-    const {departments, department, select, loading} = useReportDepartment();
+    const {departments, department, select, loading} = useReportDepartment(false);
     const userQuery = useQuery<CurrentUser>(gqlUser.CurrentUser);
     const user = userQuery.data && userQuery.data.user;
     const membersQuery = useQuery<ReportMembers, ReportMembersVariables>(gqlReport.ReportMembers, {
@@ -49,11 +49,15 @@ export const DailyReportInputPage = () => {
     if (loading || !user || (department && membersQuery.loading)) {
         return <CenteredSpinner />;
     }
-    if (!department) {
-        return <Message text="所属している部署がありません。管理者に「日報設定」でメンバー登録を依頼してください。" />;
-    }
     const members = (membersQuery.data && membersQuery.data.reportMembers) || [];
     const member = members.find((m) => m.userId === user.id);
+    if (!department || !member) {
+        return (
+            <Typography align="center" style={{marginTop: 32}}>
+                所属している部署がありません。管理者に「日報設定」でメンバー登録を依頼してください。
+            </Typography>
+        );
+    }
     return (
         <div className={classes.root}>
             {departments.length > 1 ? (
@@ -61,28 +65,16 @@ export const DailyReportInputPage = () => {
                     <DepartmentSelect departments={departments} value={department.id} onChange={select} />
                 </div>
             ) : null}
-            {member ? (
-                <ReportForm
-                    key={department.id}
-                    departmentId={department.id}
-                    userId={user.id}
-                    name={member.name}
-                    settings={parseSettings(department.settings)}
-                />
-            ) : (
-                <Message
-                    text={`「${department.name}」のメンバーに登録されていません。「日報設定」でメンバー登録してください。`}
-                />
-            )}
+            <ReportForm
+                key={department.id}
+                departmentId={department.id}
+                userId={user.id}
+                name={member.name}
+                settings={parseSettings(department.settings)}
+            />
         </div>
     );
 };
-
-const Message: React.FC<{text: string}> = ({text}) => (
-    <Typography align="center" style={{marginTop: 32}}>
-        {text}
-    </Typography>
-);
 
 interface Draft {
     date: string;
@@ -150,6 +142,10 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
     const set = (key: keyof Draft) => (e: React.ChangeEvent<HTMLInputElement>) => setDraft({...draft, [key]: e.target.value});
 
     const save = () => {
+        if (!draft.date) {
+            enqueueSnackbar('日付を入力してください', {variant: 'warning'});
+            return;
+        }
         const error = validateRows(settings, draft.rows);
         if (error) {
             enqueueSnackbar(error, {variant: 'warning'});

@@ -203,12 +203,16 @@ export const OverridesEditor: React.FC<{
     workCategories: WorkCategory[];
     onChange: (o: SubcategoryWorkOverride[]) => void;
 }> = ({categories, overrides, workCategories, onChange}) => {
-    const pairs = categoryPairs(categories);
-    const [selected, setSelected] = React.useState<string[]>([]);
+    const [checked, setChecked] = React.useState<string[]>([]);
+    const [collapsed, setCollapsed] = React.useState<string[]>([]);
     const [bulkWorkCategory, setBulkWorkCategory] = React.useState('');
     const [bulkAsset, setBulkAsset] = React.useState('');
-    const toggle = (key: string) =>
-        setSelected(selected.indexOf(key) >= 0 ? selected.filter((k) => k !== key) : [...selected, key]);
+    const pairs = categoryPairs(categories);
+    const keys = pairs.map((p) => pairKey(p.category, p.subcategory));
+    // カテゴリ・分類を変更して無くなった行の選択は数えない
+    const selected = checked.filter((k) => keys.indexOf(k) >= 0);
+    const select = (target: string[], on: boolean) =>
+        setChecked([...selected.filter((k) => target.indexOf(k) < 0), ...(on ? target : [])]);
     const current = (category: string, subcategory: string) =>
         findPairOverride(overrides, category, subcategory) || {category, subcategory, workCategoryId: '', assetFlag: '0'};
     const applyBulk = () =>
@@ -224,12 +228,14 @@ export const OverridesEditor: React.FC<{
                     });
                 }, overrides)
         );
+    const toggleCollapse = (name: string) =>
+        setCollapsed(collapsed.indexOf(name) >= 0 ? collapsed.filter((n) => n !== name) : [...collapsed, name]);
     return (
         <>
             <div style={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8}}>
                 <Checkbox
-                    checked={pairs.length > 0 && selected.length === pairs.length}
-                    onChange={(e) => setSelected(e.target.checked ? pairs.map((p) => pairKey(p.category, p.subcategory)) : [])}
+                    checked={keys.length > 0 && selected.length === keys.length}
+                    onChange={(e) => select(keys, e.target.checked)}
                 />
                 <Typography variant="body2">{selected.length}件選択中</Typography>
                 <div style={{flexGrow: 1}} />
@@ -252,40 +258,45 @@ export const OverridesEditor: React.FC<{
                 <TableHead>
                     <TableRow>
                         <TableCell padding="checkbox" />
-                        <TableCell>カテゴリ</TableCell>
                         <TableCell>分類</TableCell>
                         <TableCell>開発工数区分</TableCell>
                         <TableCell>資産</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {pairs.map((p) => {
-                        const key = pairKey(p.category, p.subcategory);
-                        const o = current(p.category, p.subcategory);
+                    {categories.map((c) => {
+                        const rows = pairs.filter((p) => p.category === c.name);
+                        const rowKeys = rows.map((p) => pairKey(p.category, p.subcategory));
+                        const open = collapsed.indexOf(c.name) < 0;
                         return (
-                            <TableRow key={key}>
-                                <TableCell padding="checkbox">
-                                    <Checkbox checked={selected.indexOf(key) >= 0} onChange={() => toggle(key)} />
-                                </TableCell>
-                                <TableCell>{p.category}</TableCell>
-                                <TableCell>{p.subcategory || '（分類なし・カテゴリ全体）'}</TableCell>
-                                <TableCell>
-                                    <WorkCategorySelect
-                                        value={o.workCategoryId}
-                                        workCategories={workCategories}
-                                        blank="（未設定）"
-                                        onChange={(v) => onChange(setOverride(overrides, {...o, workCategoryId: v}))}
-                                    />
-                                </TableCell>
-                                <TableCell padding="checkbox">
-                                    <Checkbox
-                                        checked={o.assetFlag === '1'}
-                                        onChange={(e) =>
-                                            onChange(setOverride(overrides, {...o, assetFlag: e.target.checked ? '1' : '0'}))
-                                        }
-                                    />
-                                </TableCell>
-                            </TableRow>
+                            <React.Fragment key={c.name}>
+                                <TableRow hover>
+                                    <TableCell padding="checkbox">
+                                        <Checkbox
+                                            checked={rowKeys.every((k) => selected.indexOf(k) >= 0)}
+                                            onChange={(e) => select(rowKeys, e.target.checked)}
+                                        />
+                                    </TableCell>
+                                    <TableCell
+                                        colSpan={3}
+                                        style={{cursor: 'pointer', fontWeight: 'bold'}}
+                                        onClick={() => toggleCollapse(c.name)}>
+                                        {open ? '▼' : '▶'} {c.name}
+                                    </TableCell>
+                                </TableRow>
+                                {open
+                                    ? rows.map((p) => (
+                                          <OverrideRow
+                                              key={pairKey(p.category, p.subcategory)}
+                                              override={current(p.category, p.subcategory)}
+                                              checked={selected.indexOf(pairKey(p.category, p.subcategory)) >= 0}
+                                              workCategories={workCategories}
+                                              onCheck={(on) => select([pairKey(p.category, p.subcategory)], on)}
+                                              onChange={(o) => onChange(setOverride(overrides, o))}
+                                          />
+                                      ))
+                                    : null}
+                            </React.Fragment>
                         );
                     })}
                 </TableBody>
@@ -293,3 +304,32 @@ export const OverridesEditor: React.FC<{
         </>
     );
 };
+
+const OverrideRow: React.FC<{
+    override: SubcategoryWorkOverride;
+    checked: boolean;
+    workCategories: WorkCategory[];
+    onCheck: (on: boolean) => void;
+    onChange: (o: SubcategoryWorkOverride) => void;
+}> = ({override, checked, workCategories, onCheck, onChange}) => (
+    <TableRow>
+        <TableCell padding="checkbox">
+            <Checkbox checked={checked} onChange={(e) => onCheck(e.target.checked)} />
+        </TableCell>
+        <TableCell style={{paddingLeft: 32}}>{override.subcategory || '（分類なし・カテゴリ全体）'}</TableCell>
+        <TableCell>
+            <WorkCategorySelect
+                value={override.workCategoryId}
+                workCategories={workCategories}
+                blank="（未設定）"
+                onChange={(v) => onChange({...override, workCategoryId: v})}
+            />
+        </TableCell>
+        <TableCell padding="checkbox">
+            <Checkbox
+                checked={override.assetFlag === '1'}
+                onChange={(e) => onChange({...override, assetFlag: e.target.checked ? '1' : '0'})}
+            />
+        </TableCell>
+    </TableRow>
+);

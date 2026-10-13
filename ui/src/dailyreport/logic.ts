@@ -257,7 +257,6 @@ export const downloadText = (fileName: string, text: string, type = 'text/csv;ch
     link.href = URL.createObjectURL(new Blob([text], {type}));
     link.download = fileName;
     link.click();
-    URL.revokeObjectURL(link.href);
 };
 
 export interface SettingsFile {
@@ -284,6 +283,12 @@ export const importSettingsJs = (text: string): SettingsFile & {sharedMembers: s
         throw new Error('DAILY_REPORT_SETTINGS が見つかりません');
     }
     const {names, settingsGroupName, ...rest} = value as Record<string, unknown>;
+    // APIキーは各自のブラウザに持つもので、部署の設定（メンバー全員が読める）には入れない
+    if (rest.backlog && typeof rest.backlog === 'object') {
+        const backlog = {...(rest.backlog as Record<string, unknown>)};
+        delete backlog.apiKey;
+        rest.backlog = backlog;
+    }
     // 元ツールの names は名前だけの文字列でも書ける
     const entries = asArray<string | NameEntry>(names).map((n): NameEntry => (typeof n === 'string' ? {name: n} : n));
     return {

@@ -114,15 +114,6 @@ func (r *ResolverForDailyReport) ReportAttendances(ctx context.Context, departme
 	return result, nil
 }
 
-func (r *ResolverForDailyReport) transaction(fn func(tx *gorm.DB) error) error {
-	tx := r.DB.Begin()
-	if err := fn(tx); err != nil {
-		tx.Rollback()
-		return err
-	}
-	return tx.Commit().Error
-}
-
 func toExternalEntry(e model.ReportEntry) *gqlmodel.ReportEntry {
 	return &gqlmodel.ReportEntry{
 		ID:          e.ID,

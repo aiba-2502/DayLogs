@@ -1,8 +1,8 @@
 import {gql} from 'apollo-boost';
 
 export const ReportDepartments = gql`
-    query ReportDepartments {
-        reportDepartments {
+    query ReportDepartments($all: Boolean!) {
+        reportDepartments(all: $all) {
             id
             name
             settings
@@ -83,8 +83,8 @@ export const CreateReportDepartment = gql`
 `;
 
 export const UpdateReportDepartment = gql`
-    mutation UpdateReportDepartment($id: Int!, $name: String!, $settings: String!) {
-        updateReportDepartment(id: $id, name: $name, settings: $settings) {
+    mutation UpdateReportDepartment($id: Int!, $name: String!, $settings: String!, $members: [InputReportMember!]!) {
+        updateReportDepartment(id: $id, name: $name, settings: $settings, members: $members) {
             id
         }
     }
@@ -93,14 +93,6 @@ export const UpdateReportDepartment = gql`
 export const RemoveReportDepartment = gql`
     mutation RemoveReportDepartment($id: Int!) {
         removeReportDepartment(id: $id) {
-            id
-        }
-    }
-`;
-
-export const SetReportMembers = gql`
-    mutation SetReportMembers($departmentId: Int!, $members: [InputReportMember!]!) {
-        setReportMembers(departmentId: $departmentId, members: $members) {
             id
         }
     }

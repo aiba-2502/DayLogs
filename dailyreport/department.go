@@ -6,17 +6,18 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/jinzhu/gorm"
 	"github.com/traggo/server/auth"
 	"github.com/traggo/server/generated/gqlmodel"
 	"github.com/traggo/server/model"
 )
 
-// ReportDepartments returns the departments of the current user. Admins get all departments.
-func (r *ResolverForDailyReport) ReportDepartments(ctx context.Context) ([]*gqlmodel.ReportDepartment, error) {
+// ReportDepartments returns the departments of the current user, or all departments for admins with all.
+func (r *ResolverForDailyReport) ReportDepartments(ctx context.Context, all bool) ([]*gqlmodel.ReportDepartment, error) {
 	user := auth.GetUser(ctx)
 	var departments []model.ReportDepartment
 	q := r.DB.Order("name, id")
-	if !user.Admin {
+	if !(all && user.Admin) {
 		q = q.Where("id IN (?)", r.DB.Table("report_members").Select("department_id").Where("user_id = ?", user.ID).QueryExpr())
 	}
 	if err := q.Find(&departments).Error; err != nil {
@@ -41,8 +42,8 @@ func (r *ResolverForDailyReport) CreateReportDepartment(ctx context.Context, nam
 	return toExternalDepartment(department), nil
 }
 
-// UpdateReportDepartment updates the name and settings of a department.
-func (r *ResolverForDailyReport) UpdateReportDepartment(ctx context.Context, id int, name string, settings string) (*gqlmodel.ReportDepartment, error) {
+// UpdateReportDepartment updates the name, settings and members of a department.
+func (r *ResolverForDailyReport) UpdateReportDepartment(ctx context.Context, id int, name string, settings string, members []*gqlmodel.InputReportMember) (*gqlmodel.ReportDepartment, error) {
 	department := model.ReportDepartment{}
 	if r.DB.First(&department, id).RecordNotFound() {
 		return nil, errNoAccess
@@ -52,10 +53,25 @@ func (r *ResolverForDailyReport) UpdateReportDepartment(ctx context.Context, id 
 	if err := validateDepartment(department); err != nil {
 		return nil, err
 	}
-	if err := r.DB.Save(&department).Error; err != nil {
+	if err := r.validateMembers(members); err != nil {
 		return nil, err
 	}
-	return toExternalDepartment(department), nil
+	err := r.transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(&department).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("department_id = ?", id).Delete(&model.ReportMember{}).Error; err != nil {
+			return err
+		}
+		for _, m := range members {
+			member := model.ReportMember{DepartmentID: id, UserID: m.UserID, Name: strings.TrimSpace(m.Name), FreeeEmployeeNo: strings.TrimSpace(m.FreeeEmployeeNo)}
+			if err := tx.Create(&member).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return toExternalDepartment(department), err
 }
 
 // RemoveReportDepartment removes a department. Its members, entries and attendances are removed by ON DELETE CASCADE.

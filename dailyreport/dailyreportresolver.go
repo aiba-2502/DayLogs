@@ -12,7 +12,7 @@ type ResolverForDailyReport struct {
 	DB *gorm.DB
 }
 
-var errNoAccess = errors.New("department does not exist or you are not a member")
+var errNoAccess = errors.New("部署が存在しないか、部署のメンバーではありません")
 
 // member returns the membership of the user in the department.
 func (r *ResolverForDailyReport) member(userID, departmentID int) (model.ReportMember, error) {
@@ -33,4 +33,13 @@ func (r *ResolverForDailyReport) canRead(user *model.User, departmentID int) err
 	}
 	_, err := r.member(user.ID, departmentID)
 	return err
+}
+
+func (r *ResolverForDailyReport) transaction(fn func(tx *gorm.DB) error) error {
+	tx := r.DB.Begin()
+	if err := fn(tx); err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
 }
