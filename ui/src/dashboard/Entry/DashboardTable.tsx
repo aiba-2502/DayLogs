@@ -5,7 +5,7 @@ import moment from 'moment';
 import {Table, TableBody, TableCell, TableRow} from '@material-ui/core';
 import TableHead from '@material-ui/core/TableHead';
 import {ofInterval} from './dateformat';
-import prettyMs from 'pretty-ms';
+import {prettyDuration} from '../../timespan/timeutils';
 
 interface DashboardTableProps {
     entries: Stats_stats[];
@@ -31,7 +31,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({entries, interval
                 }, {}),
             };
             if (total) {
-                result.data['Total'] = Object.values(result.data).reduce((acc, value) => acc + value, 0);
+                result.data['合計'] = Object.values(result.data).reduce((acc, value) => acc + value, 0);
             }
             return result;
         })
@@ -45,7 +45,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({entries, interval
                     <>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Date</TableCell>
+                                <TableCell>日付</TableCell>
                                 {keys.map((key) => {
                                     return <TableCell key={key}>{key}</TableCell>;
                                 })}
@@ -57,7 +57,9 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({entries, interval
                                     <TableRow key={entry.start}>
                                         <TableCell>{dateFormat(moment(entry.start))}</TableCell>
                                         {keys.map((key) => (
-                                            <TableCell key={key + entry.start}>{prettyMs(entry.data[key] * 1000)}</TableCell>
+                                            <TableCell key={key + entry.start}>
+                                                {prettyDuration(entry.data[key] * 1000)}
+                                            </TableCell>
                                         ))}
                                     </TableRow>
                                 );
@@ -68,7 +70,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({entries, interval
                     <>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Date</TableCell>
+                                <TableCell>日付</TableCell>
                                 {indexedEntries.map((entry) => {
                                     return <TableCell key={entry.start}>{dateFormat(moment(entry.start))}</TableCell>;
                                 })}
@@ -80,7 +82,9 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({entries, interval
                                     <TableRow key={key}>
                                         <TableCell>{key}</TableCell>
                                         {indexedEntries.map((entry) => (
-                                            <TableCell key={key + entry.start}>{prettyMs(entry.data[key] * 1000)}</TableCell>
+                                            <TableCell key={key + entry.start}>
+                                                {prettyDuration(entry.data[key] * 1000)}
+                                            </TableCell>
                                         ))}
                                     </TableRow>
                                 );

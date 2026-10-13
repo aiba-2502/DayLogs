@@ -4,11 +4,11 @@ import {expectNever} from '../utils/never';
 export const deviceTypeToString = (type: DeviceType) => {
     switch (type) {
         case DeviceType.LongExpiry:
-            return 'A month of inactivity';
+            return '1か月間操作なし';
         case DeviceType.ShortExpiry:
-            return 'An hour of inactivity';
+            return '1時間操作なし';
         case DeviceType.NoExpiry:
-            return 'Never';
+            return '無期限';
         default:
             return expectNever(type);
     }

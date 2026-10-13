@@ -24,10 +24,10 @@ export const EditGlass: React.FC<EditGlassProps> = ({doEdit, doDelete}) => {
             }}>
             {confirm ? (
                 <div>
-                    <Typography>Confirm Deletion</Typography>
-                    <Button onClick={() => askConfirmation(false)}>Cancel</Button>
+                    <Typography>削除の確認</Typography>
+                    <Button onClick={() => askConfirmation(false)}>キャンセル</Button>
                     <Button color={'primary'} onClick={doDelete}>
-                        Yeah, Delete
+                        削除する
                     </Button>
                 </div>
             ) : (
@@ -52,10 +52,10 @@ export const EditGlass: React.FC<EditGlassProps> = ({doEdit, doDelete}) => {
                         <Center>
                             <div style={{background: 'rgba(120,120,120, .8)', padding: 10}}>
                                 <Typography variant={'h5'} style={{textAlign: 'center', width: '100%'}}>
-                                    drag here
+                                    ここをドラッグして移動
                                 </Typography>
                                 <Typography variant={'body1'} style={{textAlign: 'center'}}>
-                                    resize on corner
+                                    角をドラッグしてサイズ変更
                                 </Typography>
                             </div>
                         </Center>

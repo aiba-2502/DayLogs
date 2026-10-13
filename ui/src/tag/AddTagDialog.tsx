@@ -39,20 +39,20 @@ export const AddTagDialog: React.FC<AddTagDialogProps> = ({close, open, initialN
                     onAdded(result.data.createTag);
                 }
             })
-            .catch(handleError('Add Tag', enqueueSnackbar));
+            .catch(handleError('タグの追加', enqueueSnackbar));
     };
 
     return (
         <Dialog open={open} onClose={close} aria-labelledby="form-dialog-title" fullWidth>
             <form onSubmit={submit} noValidate autoComplete="off">
-                <DialogTitle id="form-dialog-title">Create Tag</DialogTitle>
+                <DialogTitle id="form-dialog-title">タグを作成</DialogTitle>
                 <DialogContent>
                     <DialogContentText />
                     <TextField
                         autoFocus
                         margin="dense"
                         id="name"
-                        label="Name"
+                        label="名前"
                         type="text"
                         fullWidth
                         value={name}
@@ -60,7 +60,7 @@ export const AddTagDialog: React.FC<AddTagDialogProps> = ({close, open, initialN
                     />
                     <FormControl fullWidth margin="dense">
                         <InputLabel htmlFor="color-picker" shrink={true}>
-                            Color
+                            色
                         </InputLabel>
                         <div id="color-picker" style={{marginTop: 25}}>
                             <SliderPicker onChange={(c) => setColor(c.hex)} color={color} />
@@ -69,10 +69,10 @@ export const AddTagDialog: React.FC<AddTagDialogProps> = ({close, open, initialN
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={close} color="primary">
-                        Cancel
+                        キャンセル
                     </Button>
                     <Button type="submit" onClick={submit} color="primary">
-                        Create Tag
+                        タグを作成
                     </Button>
                 </DialogActions>
             </form>

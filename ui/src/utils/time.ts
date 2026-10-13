@@ -49,7 +49,7 @@ export const parseRelativeTime = (value: string, divide: 'endOf' | 'startOf', no
             switch (expectNext) {
                 case Type.Operation:
                     if (!isOperation(currentChar)) {
-                        return failure('Expected one of / + - at index ' + currentIndex + ' but was ' + currentChar);
+                        return failure('位置 ' + currentIndex + ': / + - のいずれかが必要です (入力: ' + currentChar + ')');
                     }
                     lastOperation = currentChar;
                     expectNext = currentChar === Operation.Divide ? Type.Unit : Type.Value;
@@ -57,7 +57,7 @@ export const parseRelativeTime = (value: string, divide: 'endOf' | 'startOf', no
                     break;
                 case Type.Value:
                     if (isNaN(parseInt(currentChar, 10))) {
-                        return failure('Expected number at index ' + currentIndex + ' but was ' + currentChar);
+                        return failure('位置 ' + currentIndex + ': 数値が必要です (入力: ' + currentChar + ')');
                     }
                     let valueIndex = currentIndex;
                     while (!isNaN(parseInt(value.charAt(valueIndex + 1), 10)) && valueIndex + 1 < value.length) {
@@ -71,7 +71,7 @@ export const parseRelativeTime = (value: string, divide: 'endOf' | 'startOf', no
                 case Type.Unit:
                     if (!isUnit(currentChar)) {
                         return failure(
-                            'Expected unit (' + Object.values(Unit) + ') at index ' + currentIndex + ' but was ' + currentChar
+                            '位置 ' + currentIndex + ': 単位 (' + Object.values(Unit) + ') が必要です (入力: ' + currentChar + ')'
                         );
                     }
 
@@ -100,19 +100,19 @@ export const parseRelativeTime = (value: string, divide: 'endOf' | 'startOf', no
             }
         }
         if (expectNext === Type.Unit) {
-            return failure('Expected unit at the end but got nothing');
+            return failure('末尾に単位が必要です');
         }
         if (expectNext === Type.Value) {
-            return failure('Expected number at the end but got nothing');
+            return failure('末尾に数値が必要です');
         }
         return success(time);
     }
 
     if (value.indexOf('now') !== -1) {
-        return failure("'now' must be at the start");
+        return failure("'now' は先頭に置いてください");
     }
 
-    return failure("Expected valid date or 'now' at index 0");
+    return failure("先頭は有効な日付または 'now' にしてください");
 };
 
 export const success = (value: moment.Moment): Success => {

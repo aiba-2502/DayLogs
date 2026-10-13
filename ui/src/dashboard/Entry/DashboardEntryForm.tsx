@@ -21,6 +21,24 @@ interface EditPopupProps {
     ranges: Record<string, string>;
 }
 
+const entryTypeLabels: Record<EntryType, string> = {
+    [EntryType.PieChart]: '円グラフ',
+    [EntryType.BarChart]: '棒グラフ',
+    [EntryType.StackedBarChart]: '積み上げ棒グラフ',
+    [EntryType.LineChart]: '折れ線グラフ',
+    [EntryType.VerticalTable]: '表（縦）',
+    [EntryType.HorizontalTable]: '表（横）',
+};
+
+const intervalLabels: Record<StatsInterval, string> = {
+    [StatsInterval.Hourly]: '1時間ごと',
+    [StatsInterval.Daily]: '日ごと',
+    [StatsInterval.Weekly]: '週ごと',
+    [StatsInterval.Monthly]: '月ごと',
+    [StatsInterval.Yearly]: '年ごと',
+    [StatsInterval.Single]: '期間全体',
+};
+
 export const isValidDashboardEntry = (item: Dashboards_dashboards_items): boolean => {
     return (
         item.statsSelection.tags !== null &&
@@ -58,7 +76,7 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
     return (
         <>
             <TextField
-                label={'Title'}
+                label={'タイトル'}
                 value={entry.title}
                 disabled={disabled}
                 onChange={(e) => {
@@ -68,7 +86,7 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
                 fullWidth
             />
             <FormControl margin={'normal'} fullWidth>
-                <InputLabel>Type</InputLabel>
+                <InputLabel>種類</InputLabel>
                 <Select
                     fullWidth
                     value={entry.entryType}
@@ -79,13 +97,13 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
                     }}>
                     {Object.values(EntryType).map((type) => (
                         <option key={type} value={type}>
-                            {type}
+                            {entryTypeLabels[type]}
                         </option>
                     ))}
                 </Select>
             </FormControl>
             <FormControl margin={'normal'} fullWidth>
-                <InputLabel>Interval</InputLabel>
+                <InputLabel>間隔</InputLabel>
                 <Select
                     fullWidth
                     disabled={disabled}
@@ -96,15 +114,15 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
                     }}>
                     {Object.values(StatsInterval).map((type) => (
                         <option key={type} value={type}>
-                            {type}
+                            {intervalLabels[type]}
                         </option>
                     ))}
                 </Select>
             </FormControl>
             <Typography component="div">
                 <Grid component="label" container alignItems="center" spacing={1}>
-                    <Grid item>Range: </Grid>
-                    <Grid item>Global</Grid>
+                    <Grid item>期間: </Grid>
+                    <Grid item>グローバル</Grid>
                     <Grid item>
                         <Switch
                             checked={staticRange}
@@ -124,13 +142,13 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
                             }}
                         />
                     </Grid>
-                    <Grid item>Static</Grid>
+                    <Grid item>固定</Grid>
                 </Grid>
             </Typography>
             {staticRange ? (
                 <>
                     <RelativeDateTimeSelector
-                        label={'From'}
+                        label={'開始'}
                         disabled={disabled}
                         value={range.from}
                         onChange={(startDate) => {
@@ -141,7 +159,7 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
                         type="startOf"
                     />
                     <RelativeDateTimeSelector
-                        label={'To'}
+                        label={'終了'}
                         disabled={disabled}
                         value={range.to}
                         onChange={(endDate) => {
@@ -169,7 +187,7 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
                         undefined
                     ) : (
                         <option key={''} value={''}>
-                            Select a date range
+                            期間を選択
                         </option>
                     )}
                     {Object.keys(ranges).map((key) => (
@@ -198,7 +216,7 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
                 undefined
             )}
             <FormTagSelector
-                label="Tags"
+                label="タグ"
                 selectedEntries={tagKeys || []}
                 onSelectedEntriesChanged={(tags) => {
                     entry.statsSelection.tags = tags.map((tag) => tag.tag.key);
@@ -209,7 +227,7 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
             />
 
             <FormTagSelector
-                label="Exclude"
+                label="除外"
                 selectedEntries={excludeTags || []}
                 onSelectedEntriesChanged={(tags) => {
                     entry.statsSelection.excludeTags = tags.map((tag) => ({
@@ -223,7 +241,7 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
                 createTags={false}
             />
             <FormTagSelector
-                label="Include"
+                label="含める"
                 selectedEntries={includeTags || []}
                 onSelectedEntriesChanged={(tags) => {
                     entry.statsSelection.includeTags = tags.map((tag) => ({
@@ -243,13 +261,13 @@ export const DashboardEntryForm: React.FC<EditPopupProps> = ({entry, onChange: s
 const getTotalTitle = (entryType: EntryType) => {
     switch (entryType) {
         case EntryType.HorizontalTable:
-            return 'Show "Total" row:';
+            return '「合計」行を表示:';
         case EntryType.VerticalTable:
-            return 'Show "Total" column:';
+            return '「合計」列を表示:';
         case EntryType.BarChart:
         case EntryType.StackedBarChart:
         case EntryType.LineChart:
-            return 'Show "Total" in tooltip:';
+            return 'ツールチップに「合計」を表示:';
         default:
             return '';
     }

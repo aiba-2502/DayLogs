@@ -105,19 +105,19 @@ export const DashboardPage: React.FC<RouterProps> = ({match, history}) => {
         return <CenteredSpinner />;
     }
     if (error || !data) {
-        return <span>error</span>;
+        return <span>エラー</span>;
     }
 
     const dashboards = data.dashboards || [];
 
     if (!match || !match.params.id) {
-        enqueueSnackbar('id parameter is missing in url', {variant: 'warning'});
+        enqueueSnackbar('URLにIDパラメータがありません', {variant: 'warning'});
         history.push('/dashboards');
         return <></>;
     }
     const dashboard = dashboards.find((db) => '' + db.id === match.params.id);
     if (!dashboard) {
-        enqueueSnackbar('dashboard does not exist', {variant: 'warning'});
+        enqueueSnackbar('ダッシュボードが存在しません', {variant: 'warning'});
         history.push('/dashboards');
         return <></>;
     }
@@ -168,7 +168,7 @@ export const DashboardPage: React.FC<RouterProps> = ({match, history}) => {
                             onClick={() => setViewType(viewType === ViewType.Desktop ? ViewType.Mobile : ViewType.Desktop)}
                             variant={'outlined'}
                             style={{marginRight: 10}}>
-                            {viewType === ViewType.Mobile ? 'Desktop View' : 'Mobile View'}
+                            {viewType === ViewType.Mobile ? 'デスクトップ表示' : 'モバイル表示'}
                         </Button>
                     ) : null}
                     {changeMode ? (
@@ -179,7 +179,7 @@ export const DashboardPage: React.FC<RouterProps> = ({match, history}) => {
                             }}
                             variant={'outlined'}
                             style={{marginRight: 10}}>
-                            Add Entry
+                            エントリを追加
                         </Button>
                     ) : null}
                     <Button
@@ -190,7 +190,7 @@ export const DashboardPage: React.FC<RouterProps> = ({match, history}) => {
                         variant={'outlined'}
                         color={'primary'}
                         style={{marginRight: 10}}>
-                        {changeMode ? 'Exit Editing' : 'Edit Dashboard'}
+                        {changeMode ? '編集を終了' : 'ダッシュボードを編集'}
                     </Button>
                 </div>
             </div>
@@ -243,7 +243,7 @@ export const DashboardPage: React.FC<RouterProps> = ({match, history}) => {
                                 <DashboardEntry ranges={indexedRanges} key="uff" entry={addEntry} />
                             ) : (
                                 <Paper style={{width: '100%', height: '100%'}}>
-                                    <Center>New Entry</Center>
+                                    <Center>新規エントリ</Center>
                                 </Paper>
                             )}
 

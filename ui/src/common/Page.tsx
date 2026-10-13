@@ -113,7 +113,7 @@ export const Page: React.FC = ({children}) => {
     const dashboardsQuery = useQuery<Dashboards>(gqlDashboard.Dashboards);
     const dashboards = (dashboardsQuery.data && dashboardsQuery.data.dashboards) || [];
 
-    const username = (data && data.user && data.user.name) || 'unknown';
+    const username = (data && data.user && data.user.name) || '不明';
     const admin = data && data.user && data.user.admin;
 
     const drawer = (
@@ -131,7 +131,7 @@ export const Page: React.FC = ({children}) => {
                 </HrefLink>
             </div>
             <Divider />
-            <List subheader={<ListSubheader>Dashboards</ListSubheader>} dense={true}>
+            <List subheader={<ListSubheader>ダッシュボード</ListSubheader>} dense={true}>
                 {dashboards.map(({id, name}) => (
                     <ListItem key={id} button component={routerLink(`/dashboard/${id}/${encodeURIComponent(name)}`)}>
                         <ListItemIcon>
@@ -142,61 +142,61 @@ export const Page: React.FC = ({children}) => {
                 ))}
                 {dashboards.length === 0 ? (
                     <ListItem button dense={true} disabled={true}>
-                        <ListItemText primary={'no dashboards added'} />
+                        <ListItemText primary={'ダッシュボードがありません'} />
                     </ListItem>
                 ) : null}
                 <ListItem button component={routerLink(`/dashboards`)}>
                     <ListItemIcon>
                         <DashboardManageIcon />
                     </ListItemIcon>
-                    <ListItemText primary={'Manage'} />
+                    <ListItemText primary={'管理'} />
                 </ListItem>
             </List>
             <Divider />
-            <List subheader={<ListSubheader>Timesheet</ListSubheader>} dense={true}>
+            <List subheader={<ListSubheader>タイムシート</ListSubheader>} dense={true}>
                 <ListItem button component={routerLink('/timesheet/list')}>
                     <ListItemIcon>
                         <TimeLineIcon />
                     </ListItemIcon>
-                    <ListItemText primary="List" />
+                    <ListItemText primary="リスト" />
                 </ListItem>
                 <ListItem button component={routerLink('/timesheet/calendar')}>
                     <ListItemIcon>
                         <CalendarIcon />
                     </ListItemIcon>
-                    <ListItemText primary="Calendar" />
+                    <ListItemText primary="カレンダー" />
                 </ListItem>
             </List>
             <Divider />
-            <List subheader={<ListSubheader>User</ListSubheader>} dense={true}>
+            <List subheader={<ListSubheader>ユーザー</ListSubheader>} dense={true}>
                 <ListItem button component={routerLink('/user/tags')}>
                     <ListItemIcon>
                         <LabelIcon />
                     </ListItemIcon>
-                    <ListItemText primary="Tags" />
+                    <ListItemText primary="タグ" />
                 </ListItem>
                 <ListItem button component={routerLink('/user/devices')}>
                     <ListItemIcon>
                         <DevicesIcon />
                     </ListItemIcon>
-                    <ListItemText primary="Devices" />
+                    <ListItemText primary="デバイス" />
                 </ListItem>
                 <ListItem button component={routerLink('/user/settings')}>
                     <ListItemIcon>
                         <SettingsIcon />
                     </ListItemIcon>
-                    <ListItemText primary="Settings" />
+                    <ListItemText primary="設定" />
                 </ListItem>
             </List>
             {admin ? (
                 <>
                     <Divider />
-                    <List subheader={<ListSubheader>Admin</ListSubheader>} dense={true}>
+                    <List subheader={<ListSubheader>管理</ListSubheader>} dense={true}>
                         <ListItem button component={routerLink('/admin/users')}>
                             <ListItemIcon>
                                 <UsersIcon />
                             </ListItemIcon>
-                            <ListItemText primary="Users" />
+                            <ListItemText primary="ユーザー" />
                         </ListItem>
                     </List>
                 </>
@@ -212,7 +212,7 @@ export const Page: React.FC = ({children}) => {
                 <Toolbar>
                     <IconButton
                         color="inherit"
-                        aria-label="Open drawer"
+                        aria-label="メニューを開く"
                         onClick={() => setMobileOpen(!mobileOpen)}
                         className={classes.menuButton}>
                         <MenuIcon />
@@ -220,32 +220,32 @@ export const Page: React.FC = ({children}) => {
                     <Typography variant="h6" color="inherit" noWrap>
                         <Switch>
                             <Route exact path="/timesheet/list">
-                                Timesheet / List
+                                タイムシート / リスト
                             </Route>
                             <Route exact path="/timesheet/calendar">
-                                Timesheet / Calendar
+                                タイムシート / カレンダー
                             </Route>
                             <Route exact path="/user/settings">
-                                User / Settings
+                                ユーザー / 設定
                             </Route>
                             <Route exact path="/user/devices">
-                                User / Devices
+                                ユーザー / デバイス
                             </Route>
                             <Route exact path="/user/tags">
-                                User / Tags
+                                ユーザー / タグ
                             </Route>
                             <Route exact path="/admin/users">
-                                Admin / Users
+                                管理 / ユーザー
                             </Route>
                             <Route exact path="/dashboards">
-                                Dashboards / Manage
+                                ダッシュボード / 管理
                             </Route>
                             <Route exact path="/dashboard/:id/:name">
                                 {(props: RouteChildrenProps<{id: string}>) => {
                                     const db = dashboards.find(
                                         (dashboard) => dashboard.id === parseInt(props.match!.params.id, 10)
                                     );
-                                    return 'Dashboards / ' + (db ? db.name : '...');
+                                    return 'ダッシュボード / ' + (db ? db.name : '...');
                                 }}
                             </Route>
                         </Switch>
@@ -263,14 +263,14 @@ export const Page: React.FC = ({children}) => {
                             open={!!userMenuOpen}
                             onClose={() => setUserMenuOpen(null)}>
                             <MenuItem onClick={() => setUserMenuOpen(null)} component={routerLink('/user/settings')}>
-                                Settings
+                                設定
                             </MenuItem>
                             <MenuItem
                                 onClick={() => {
                                     setUserMenuOpen(null);
                                     logout();
                                 }}>
-                                Logout
+                                ログアウト
                             </MenuItem>
                         </Menu>
                     </div>

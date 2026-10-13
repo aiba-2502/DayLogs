@@ -40,8 +40,8 @@ export const LoginForm = () => {
                 deviceType: remember ? DeviceType.LongExpiry : DeviceType.ShortExpiry,
             },
         })
-            .then(() => enqueueSnackbar('Login successful', {variant: 'success'}))
-            .catch(handleError('Login failed', enqueueSnackbar));
+            .then(() => enqueueSnackbar('ログインしました', {variant: 'success'}))
+            .catch(handleError('ログイン失敗', enqueueSnackbar));
     };
     return (
         <form noValidate autoComplete="off" onSubmit={submit}>
@@ -49,7 +49,7 @@ export const LoginForm = () => {
                 required
                 margin="dense"
                 variant="outlined"
-                label="username"
+                label="ユーザー名"
                 autoFocus
                 fullWidth
                 onChange={(e) => setUsername(e.target.value)}
@@ -59,14 +59,14 @@ export const LoginForm = () => {
                 type="password"
                 margin="dense"
                 variant="outlined"
-                label="password"
+                label="パスワード"
                 fullWidth
                 onChange={(e) => setPassword(e.target.value)}
             />
             <FormControlLabel
                 style={{float: 'right'}}
                 control={<Checkbox checked={remember} onChange={(e) => setRemember(e.target.checked)} />}
-                label="Remember Me"
+                label="ログイン状態を保持"
             />
             <Button
                 type="submit"
@@ -76,7 +76,7 @@ export const LoginForm = () => {
                 onClick={submit}
                 variant="contained"
                 color="primary">
-                Login
+                ログイン
             </Button>
         </form>
     );

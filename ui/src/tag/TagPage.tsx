@@ -53,8 +53,8 @@ export const TagPage = () => {
     }
     const onClickDelete = () => {
         return removeTag({variables: {key: removeTagConfirm}})
-            .then(() => enqueueSnackbar('tag deleted', {variant: 'success'}))
-            .catch(handleError('Delete Tag', enqueueSnackbar));
+            .then(() => enqueueSnackbar('タグを削除しました', {variant: 'success'}))
+            .catch(handleError('タグの削除', enqueueSnackbar));
     };
 
     const tags = data.tags.map((tag) => {
@@ -67,8 +67,8 @@ export const TagPage = () => {
                     color: editColor,
                 },
             })
-                .then(() => enqueueSnackbar('tag edited', {variant: 'success'}))
-                .catch(handleError('Edit Tag', enqueueSnackbar));
+                .then(() => enqueueSnackbar('タグを編集しました', {variant: 'success'}))
+                .catch(handleError('タグの編集', enqueueSnackbar));
         };
         const isEdited = editKey === tag.key;
         return (
@@ -101,19 +101,19 @@ export const TagPage = () => {
                 <TableCell align="right">
                     {isEdited ? (
                         <>
-                            <IconButton onClick={onClickSubmit} title="Save">
+                            <IconButton onClick={onClickSubmit} title="保存">
                                 <DoneIcon />
                             </IconButton>
-                            <IconButton onClick={() => setEditing(['', '', ''])} title="Cancel">
+                            <IconButton onClick={() => setEditing(['', '', ''])} title="キャンセル">
                                 <CloseIcon />
                             </IconButton>
                         </>
                     ) : (
                         <>
-                            <IconButton onClick={() => setEditing([tag.key, tag.key, tag.color])} title="Edit">
+                            <IconButton onClick={() => setEditing([tag.key, tag.key, tag.color])} title="編集">
                                 <EditIcon />
                             </IconButton>
-                            <IconButton onClick={() => setRemoveTagConfirm(tag.key)} title="Delete">
+                            <IconButton onClick={() => setRemoveTagConfirm(tag.key)} title="削除">
                                 <DeleteIcon />
                             </IconButton>
                         </>
@@ -132,14 +132,14 @@ export const TagPage = () => {
                 onClick={() => setAddActive(true)}
                 fullWidth
                 style={{marginBottom: 10}}>
-                Create Tag
+                タグを作成
             </Button>
             <Table>
                 <TableHead>
                     <TableRow>
-                        <TableCell>Key</TableCell>
-                        <TableCell>Color</TableCell>
-                        <TableCell style={{width: 100}}>Usages</TableCell>
+                        <TableCell>キー</TableCell>
+                        <TableCell>色</TableCell>
+                        <TableCell style={{width: 100}}>使用数</TableCell>
                         <TableCell style={{width: 150}} />
                     </TableRow>
                 </TableHead>
@@ -148,10 +148,10 @@ export const TagPage = () => {
                     {tags}
                     {removeTagConfirm ? (
                         <ConfirmDialog
-                            title={`Delete Tag ${removeTagConfirm}`}
+                            title={`タグ「${removeTagConfirm}」を削除`}
                             fClose={() => setRemoveTagConfirm('')}
                             fOnSubmit={onClickDelete}>
-                            <b>This operation cannot be undone.</b> Deleting the tag will remove all references in time spans.
+                            <b>この操作は取り消せません。</b> タグを削除すると、記録内のすべての参照も削除されます。
                         </ConfirmDialog>
                     ) : null}
                 </TableBody>

@@ -3,7 +3,7 @@ import {FInterval} from './dateformat';
 import Paper from '@material-ui/core/Paper';
 import {Typography} from '@material-ui/core';
 import moment from 'moment-timezone';
-import prettyMs from 'pretty-ms';
+import {prettyDuration} from '../../timespan/timeutils';
 import * as React from 'react';
 
 export const TagTooltip = ({active, payload, dateFormat, total}: TooltipProps & {dateFormat: FInterval; total: boolean}) => {
@@ -17,13 +17,13 @@ export const TagTooltip = ({active, payload, dateFormat, total}: TooltipProps & 
                 {first && <Typography variant={'subtitle2'}>{start === end ? `${start}` : `${start} - ${end}`}</Typography>}
                 {payload.map((entry) => (
                     <Typography key={entry.name}>
-                        {entry.name}: {prettyMs((entry.payload.data[entry.name] as number) * 1000)}
+                        {entry.name}: {prettyDuration((entry.payload.data[entry.name] as number) * 1000)}
                     </Typography>
                 ))}
                 {total ? (
                     <Typography>
-                        Total:
-                        {prettyMs(sum(payload) * 1000)}
+                        合計:
+                        {prettyDuration(sum(payload) * 1000)}
                     </Typography>
                 ) : (
                     undefined

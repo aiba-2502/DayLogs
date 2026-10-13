@@ -31,7 +31,7 @@ export const DashboardEntry: React.FC<DashboardEntryProps> = React.forwardRef<{}
                 {entry.title}
             </Typography>
             <Typography style={{position: 'absolute', right: 10, top: 35, fontSize: 10, color: 'gray'}}>
-                {range.from} to {range.to}
+                {range.from} 〜 {range.to}
             </Typography>
             <div style={{height: 'calc(100% - 35px)'}}>
                 <SpecificDashboardEntry range={range} entry={entry} />
@@ -65,7 +65,7 @@ const SpecificDashboardEntry: React.FC<{entry: Dashboards_dashboards_items; rang
     if (stats.error) {
         return (
             <Center>
-                <Typography>error: {stats.error.message}</Typography>
+                <Typography>エラー: {stats.error.message}</Typography>
             </Center>
         );
     }
@@ -74,7 +74,7 @@ const SpecificDashboardEntry: React.FC<{entry: Dashboards_dashboards_items; rang
     if (firstEntries.length === 0) {
         return (
             <Center>
-                <Typography>no data</Typography>
+                <Typography>データなし</Typography>
             </Center>
         );
     }

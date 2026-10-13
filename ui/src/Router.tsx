@@ -57,14 +57,14 @@ const Error: React.FC<{error: ApolloError; refetch: () => void}> = ({error, refe
             <Grid item>
                 <DefaultPaper>
                     <Typography variant="h3" component="h1" gutterBottom={true}>
-                        Error
+                        エラー
                     </Typography>
                     <Typography component="p">
                         {error.networkError && error.networkError.name + ': ' + error.networkError.message}
                         {error.graphQLErrors.map((gqlError) => gqlError.message).join(', ')}
                     </Typography>
                     <Button style={{marginTop: 10}} size="large" variant="outlined" onClick={() => refetch()}>
-                        Retry
+                        再試行
                     </Button>
                 </DefaultPaper>
             </Grid>

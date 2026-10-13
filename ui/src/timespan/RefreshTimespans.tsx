@@ -19,7 +19,7 @@ export const RefreshTimeSpans: React.FC = () => {
         data.timeSpans.timeSpans.some(({start, oldStart}) => !isSameDate(moment(start), oldStart ? moment(oldStart) : undefined));
     React.useEffect(() => {
         if (hasMovedEntries) {
-            const id = enqueueSnackbar('Some messages where moved, use the refresh button to reorder the timespans', {
+            const id = enqueueSnackbar('一部の記録が移動されました。更新ボタンで記録を並べ替えてください', {
                 variant: 'info',
                 persist: true,
                 preventDuplicate: true,
@@ -46,10 +46,10 @@ export const RefreshTimeSpans: React.FC = () => {
             }}
             unmountOnExit>
             <Fab
-                aria-label={'refresh'}
+                aria-label={'更新'}
                 onClick={() => {
                     refetch({cursor: {pageSize: 30}}).then(() => {
-                        enqueueSnackbar('Refreshed messages', {variant: 'success'});
+                        enqueueSnackbar('記録を更新しました', {variant: 'success'});
                     });
                 }}
                 style={{position: 'fixed', bottom: '30px', right: '30px', zIndex: 100000}}

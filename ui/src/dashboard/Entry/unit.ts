@@ -6,18 +6,18 @@ interface Unit {
 
 const Minutes: Unit = {
     toUnit: (s) => s / 60,
-    name: 'minutes',
-    short: 'm',
+    name: '分',
+    short: '分',
 };
 const Hours: Unit = {
     toUnit: (s) => Minutes.toUnit(s) / 60,
-    name: 'hours',
-    short: 'h',
+    name: '時間',
+    short: '時間',
 };
 const Days: Unit = {
     toUnit: (s) => Hours.toUnit(s) / 24,
-    name: 'days',
-    short: 'd',
+    name: '日',
+    short: '日',
 };
 
 export const ofSeconds = (seconds: number): Unit => {

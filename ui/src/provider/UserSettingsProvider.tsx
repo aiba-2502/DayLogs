@@ -32,6 +32,9 @@ const setLocale = (locale: DateLocale, spec: LocaleSpecification) => {
         case DateLocale.German:
             moment.locale('de', spec);
             return;
+        case DateLocale.Japanese:
+            moment.locale('ja', spec);
+            return;
         default:
             expectNever(locale);
             return;

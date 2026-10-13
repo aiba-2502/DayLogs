@@ -10,9 +10,6 @@ const useStyle = makeStyles((theme) => {
             //     opacity: 0,
             //     border: 'none',
             // },
-            '& .fc-head': {
-                fontFamily: 'monospace',
-            },
             '& .fc-toolbar': {
                 display: 'flex',
                 justifyContent: 'space-between',

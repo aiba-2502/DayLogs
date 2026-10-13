@@ -80,7 +80,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                 if (errors.length === 1) {
                     showTooltipError(errors[0].error);
                 } else {
-                    showTooltipError('skipped tags because:\n' + errors.map((e) => e.error).join('\n'));
+                    showTooltipError('以下の理由でタグをスキップしました:\n' + errors.map((e) => e.error).join('\n'));
                 }
                 setCurrentValueInternal(errors[errors.length - 1].value);
             } else {
@@ -115,7 +115,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                 setHighlightedIndex(0);
                 setCurrentValue(newValue);
             } else {
-                showTooltipError('enter a value after the colon');
+                showTooltipError('コロンの後に値を入力してください');
             }
             return;
         }
@@ -128,7 +128,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     const onTagClicked = (entry: TagSelectorEntry, edit: boolean) => {
         // Prevent overwriting text that's already being edited
         if (currentValue && edit) {
-            showTooltipError('Input is not empty. Use ctrl+click to delete tag without editing.');
+            showTooltipError('入力欄が空ではありません。編集せずにタグを削除するには Ctrl+クリックしてください。');
             return;
         }
 
@@ -199,7 +199,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                             onKeyDown={onKeyDown}
                             disableUnderline={true}
                             onChange={(e) => setCurrentValue(e.target.value)}
-                            placeholder="Enter Tags"
+                            placeholder="タグを入力"
                             className={classes.inputInput}
                         />
                     </div>

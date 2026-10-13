@@ -17,7 +17,7 @@ func TestGet_noUser(t *testing.T) {
 
 	settings, err := Get(context.Background(), db.DB)
 	require.NoError(t, err)
-	require.Equal(t, model.ThemeGruvboxDark, settings.Theme)
+	require.Equal(t, model.ThemeFirstGaming, settings.Theme)
 }
 
 func TestGet_user_noSettings(t *testing.T) {
@@ -27,7 +27,7 @@ func TestGet_user_noSettings(t *testing.T) {
 
 	settings, err := Get(fake.User(1), db.DB)
 	require.NoError(t, err)
-	require.Equal(t, model.ThemeGruvboxDark, settings.Theme)
+	require.Equal(t, model.ThemeFirstGaming, settings.Theme)
 }
 
 func TestGet_user(t *testing.T) {

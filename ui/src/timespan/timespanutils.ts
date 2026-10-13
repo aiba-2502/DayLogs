@@ -30,11 +30,11 @@ const group = (startOfTomorrow: moment.Moment, startOfToday: moment.Moment, star
     current: TimeSpans_timeSpans_timeSpans
 ): GroupedByIndex => {
     const startTime = moment(current.oldStart || current.start);
-    let date = `${startTime.format('dddd')}, ${startTime.format('LL')}`;
+    let date = startTime.format('LL(ddd)');
     if (startTime.isBetween(startOfToday, startOfTomorrow)) {
-        date = `${date} (today)`;
+        date = `${date} (今日)`;
     } else if (startTime.isBetween(startOfYesterday, startOfToday)) {
-        date = `${date} (yesterday)`;
+        date = `${date} (昨日)`;
     }
     a[date] = [...(a[date] || []), current];
     return a;

@@ -5,8 +5,59 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import {useSettings} from '../gql/settings';
 import {Theme as SettingTheme} from '../gql/__generated__/globalTypes';
 
+// Arial for latin text; Japanese glyphs fall back to the OS gothic font.
+const typography = {
+    fontFamily: 'Arial, Helvetica, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", Meiryo, sans-serif',
+};
+
 const themes: Record<SettingTheme, Theme> = {
+    // Colors picked from the First Gaming logo: green lettering, violet waves, maroon label, navy background.
+    [SettingTheme.FirstGaming]: createMuiTheme({
+        typography,
+        overrides: {
+            MuiLink: {
+                root: {
+                    color: '#6eab37',
+                },
+            },
+            MuiIconButton: {
+                root: {
+                    color: 'inherit',
+                },
+            },
+            MuiListItemIcon: {
+                root: {
+                    color: 'inherit',
+                },
+            },
+            MuiToolbar: {
+                root: {
+                    background: 'linear-gradient(90deg, #04010e 0%, #4803a5 100%)',
+                    color: '#ffffff',
+                },
+            },
+        },
+        palette: {
+            background: {
+                default: '#080027',
+                paper: '#151040',
+            },
+            text: {
+                primary: '#ffffff',
+            },
+            primary: {
+                main: '#6eab37',
+                contrastText: '#000000',
+            },
+            secondary: {
+                main: '#a347ba',
+                contrastText: '#ffffff',
+            },
+            type: 'dark',
+        },
+    }),
     [SettingTheme.GruvboxDark]: createMuiTheme({
+        typography,
         overrides: {
             MuiLink: {
                 root: {
@@ -47,6 +98,7 @@ const themes: Record<SettingTheme, Theme> = {
         },
     }),
     [SettingTheme.GruvboxLight]: createMuiTheme({
+        typography,
         overrides: {
             MuiLink: {
                 root: {
@@ -87,6 +139,7 @@ const themes: Record<SettingTheme, Theme> = {
         },
     }),
     [SettingTheme.MaterialLight]: createMuiTheme({
+        typography,
         overrides: {
             MuiLink: {
                 root: {
@@ -111,6 +164,7 @@ const themes: Record<SettingTheme, Theme> = {
         },
     }),
     [SettingTheme.MaterialDark]: createMuiTheme({
+        typography,
         overrides: {
             MuiLink: {
                 root: {
@@ -133,7 +187,7 @@ const themes: Record<SettingTheme, Theme> = {
 export const ThemeProvider: React.FC = ({children}) => {
     const {theme} = useSettings();
     return (
-        <MuiThemeProvider theme={themes[theme] || themes[SettingTheme.GruvboxDark]}>
+        <MuiThemeProvider theme={themes[theme] || themes[SettingTheme.FirstGaming]}>
             <CssBaseline />
             {children}
         </MuiThemeProvider>

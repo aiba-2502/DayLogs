@@ -27,22 +27,22 @@ export const AddDashboardDialog: React.FC<AddTagDialogProps> = ({close, open}) =
         e.preventDefault();
         addUser({variables: {name}})
             .then(() => {
-                enqueueSnackbar('Dashboard created', {variant: 'success'});
+                enqueueSnackbar('ダッシュボードを作成しました', {variant: 'success'});
                 close();
             })
-            .catch(handleError('Create Dashboard', enqueueSnackbar));
+            .catch(handleError('ダッシュボードの作成', enqueueSnackbar));
     };
 
     return (
         <Dialog open={open} onClose={close} aria-labelledby="form-dialog-title" fullWidth>
             <form onSubmit={submit} noValidate autoComplete="off">
-                <DialogTitle id="form-dialog-title">Create Dashboard</DialogTitle>
+                <DialogTitle id="form-dialog-title">ダッシュボードを作成</DialogTitle>
                 <DialogContent>
                     <TextField
                         autoFocus
                         margin="dense"
                         id="name"
-                        label="Name"
+                        label="名前"
                         type="text"
                         fullWidth
                         value={name}
@@ -51,10 +51,10 @@ export const AddDashboardDialog: React.FC<AddTagDialogProps> = ({close, open}) =
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={close} color="primary">
-                        Cancel
+                        キャンセル
                     </Button>
                     <Button type="submit" onClick={submit} color="primary">
-                        Create Dashboard
+                        ダッシュボードを作成
                     </Button>
                 </DialogActions>
             </form>

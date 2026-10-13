@@ -3,7 +3,7 @@ import {Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, TooltipProps}
 import * as React from 'react';
 import {Colors} from './colors';
 import {Typography} from '@material-ui/core';
-import prettyMs from 'pretty-ms';
+import {prettyDuration} from '../../timespan/timeutils';
 import Paper from '@material-ui/core/Paper';
 
 interface DashboardPieChartProps {
@@ -47,7 +47,7 @@ const CustomTooltip = ({active, payload, total}: CustomTooltipProps) => {
         return (
             <Paper style={{padding: 10}} elevation={4}>
                 <Typography>
-                    {first.payload.key}:{first.payload.value}: {prettyMs(first.payload.timeSpendInSeconds * 1000)} (
+                    {first.payload.key}:{first.payload.value}: {prettyDuration(first.payload.timeSpendInSeconds * 1000)} (
                     {total > 0 ? ((first.payload.timeSpendInSeconds / total) * 100).toFixed(2) : '0.00'}%)
                 </Typography>
             </Paper>

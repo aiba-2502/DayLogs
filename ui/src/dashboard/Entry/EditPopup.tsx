@@ -41,7 +41,7 @@ export const EditPopup: React.FC<EditPopupProps> = ({entry, anchorEl, onChange: 
             <Fade fullyVisible={!preview} opacity={0.2}>
                 <ClickAwayListener onClickAway={() => setEdit(null)}>
                     <Paper style={{padding: 10, maxWidth: 500}}>
-                        <Typography variant="h5">Edit</Typography>
+                        <Typography variant="h5">編集</Typography>
                         <DashboardEntryForm ranges={ranges} entry={entry} onChange={setEdit} disabled={preview} />
                         <div style={{textAlign: 'right', display: 'flex', justifyContent: 'flex-end', paddingTop: 10}}>
                             <Button
@@ -50,14 +50,14 @@ export const EditPopup: React.FC<EditPopupProps> = ({entry, anchorEl, onChange: 
                                 style={{marginRight: 10, flex: 1}}
                                 disabled={!valid}
                                 onClick={() => doPreview(!preview)}>
-                                {preview ? 'Exit Preview' : 'Preview'}
+                                {preview ? 'プレビューを終了' : 'プレビュー'}
                             </Button>
                             <Button
                                 color={'secondary'}
                                 variant={'outlined'}
                                 style={{marginRight: 10}}
                                 onClick={() => setEdit(null)}>
-                                Cancel
+                                キャンセル
                             </Button>
                             <Button
                                 color={'primary'}
@@ -86,9 +86,9 @@ export const EditPopup: React.FC<EditPopupProps> = ({entry, anchorEl, onChange: 
                                         },
                                     })
                                         .then(() => setEdit(null))
-                                        .catch(handleError('Edit Dashboard Entry', enqueueSnackbar));
+                                        .catch(handleError('ダッシュボードエントリの編集', enqueueSnackbar));
                                 }}>
-                                Save
+                                保存
                             </Button>
                         </div>
                     </Paper>

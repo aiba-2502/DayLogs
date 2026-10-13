@@ -17,12 +17,14 @@ const (
 	ThemeGruvboxLight  = "GruvboxLight"
 	ThemeMaterialDark  = "MaterialDark"
 	ThemeMaterialLight = "MaterialLight"
+	ThemeFirstGaming   = "FirstGaming"
 
 	DateLocaleGerman      = "German"
 	DateLocaleAmerican    = "American"
 	DateLocaleAmerican24h = "American24h"
 	DateLocaleBritish     = "British"
 	DateLocaleAustralian  = "Australian"
+	DateLocaleJapanese    = "Japanese"
 
 	DateTimeInputFancy  = "Fancy"
 	DateTimeInputNative = "Native"

@@ -83,11 +83,11 @@ enum WeekDay {
 }
 
 enum Theme {
-    GruvboxDark, GruvboxLight, MaterialDark, MaterialLight
+    GruvboxDark, GruvboxLight, MaterialDark, MaterialLight, FirstGaming
 }
 
 enum DateLocale {
-    American, American24h, German, Australian, British
+    American, American24h, German, Australian, British, Japanese
 }
 
 enum DateTimeInputStyle {

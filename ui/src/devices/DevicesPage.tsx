@@ -57,7 +57,9 @@ export const DevicesPage = () => {
 
     const devices = data.devices.map((device) => {
         const onClickDelete = () =>
-            removeDevice({variables: {id: device.id}}).then(() => enqueueSnackbar('device deleted', {variant: 'success'}));
+            removeDevice({variables: {id: device.id}}).then(() =>
+                enqueueSnackbar('デバイスを削除しました', {variant: 'success'})
+            );
         const onClickSubmit = () => {
             setEditing([-1, '', DeviceType.NoExpiry]);
             updateDevice({
@@ -66,7 +68,7 @@ export const DevicesPage = () => {
                     name: editName,
                     deviceType: editDeviceType,
                 },
-            }).then(() => enqueueSnackbar('device edited', {variant: 'success'}));
+            }).then(() => enqueueSnackbar('デバイスを更新しました', {variant: 'success'}));
         };
         const isCurrent = device.id === data.currentDevice!.id;
         const isEdited = editId === device.id;
@@ -87,7 +89,7 @@ export const DevicesPage = () => {
                             style={{minWidth: 128}}
                         />
                     ) : (
-                        device.name + (isCurrent ? ' (current)' : '')
+                        device.name + (isCurrent ? ' (このデバイス)' : '')
                     )}
                 </TableCell>
                 <TableCell title={device.createdAt}>{moment(device.createdAt).fromNow()}</TableCell>
@@ -108,19 +110,19 @@ export const DevicesPage = () => {
                 <TableCell align="right">
                     {isEdited ? (
                         <>
-                            <IconButton onClick={onClickSubmit} title="Save">
+                            <IconButton onClick={onClickSubmit} title="保存">
                                 <DoneIcon />
                             </IconButton>
-                            <IconButton onClick={() => setEditing([-1, '', DeviceType.NoExpiry])} title="Cancel">
+                            <IconButton onClick={() => setEditing([-1, '', DeviceType.NoExpiry])} title="キャンセル">
                                 <CloseIcon />
                             </IconButton>
                         </>
                     ) : (
                         <>
-                            <IconButton onClick={() => setEditing([device.id, device.name, device.type])} title="Edit">
+                            <IconButton onClick={() => setEditing([device.id, device.name, device.type])} title="編集">
                                 <EditIcon />
                             </IconButton>
-                            <IconButton onClick={onClickDelete} title="Delete">
+                            <IconButton onClick={onClickDelete} title="削除">
                                 <DeleteIcon />
                             </IconButton>
                         </>
@@ -139,16 +141,16 @@ export const DevicesPage = () => {
                 onClick={() => setAddActive(true)}
                 fullWidth
                 style={{marginBottom: 10}}>
-                Create Device
+                デバイスを作成
             </Button>
             <Table>
                 <TableHead>
                     <TableRow>
                         <TableCell>ID</TableCell>
-                        <TableCell>Name</TableCell>
-                        <TableCell>Created</TableCell>
-                        <TableCell>Expires after</TableCell>
-                        <TableCell>Last Active</TableCell>
+                        <TableCell>名前</TableCell>
+                        <TableCell>作成日時</TableCell>
+                        <TableCell>有効期限</TableCell>
+                        <TableCell>最終利用</TableCell>
                         <TableCell style={{width: 150}} />
                     </TableRow>
                 </TableHead>

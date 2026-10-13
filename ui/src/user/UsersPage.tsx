@@ -55,7 +55,7 @@ export const UsersPage = () => {
     const onClickDelete = () => {
         if (removeUserConfirmation) {
             removeUser({variables: {id: removeUserConfirmation[0]}}).then(() =>
-                enqueueSnackbar('user deleted', {variant: 'success'})
+                enqueueSnackbar('ユーザーを削除しました', {variant: 'success'})
             );
         }
     };
@@ -70,7 +70,7 @@ export const UsersPage = () => {
                     admin: editAdmin,
                     pass: editPass || undefined,
                 },
-            }).then(() => enqueueSnackbar('user edited', {variant: 'success'}));
+            }).then(() => enqueueSnackbar('ユーザーを更新しました', {variant: 'success'}));
         };
         const isCurrent = user.id === data.currentUser!.id;
         const isEdited = editId === user.id;
@@ -90,14 +90,14 @@ export const UsersPage = () => {
                             onSubmit={onClickSubmit}
                         />
                     ) : (
-                        user.name + (isCurrent ? ' (current)' : '')
+                        user.name + (isCurrent ? ' (自分)' : '')
                     )}
                 </TableCell>
                 <TableCell>
                     {isEdited ? (
                         <TextField
                             value={editPass}
-                            placeholder={'use old password'}
+                            placeholder={'変更しない場合は空欄'}
                             type="password"
                             onChange={(e) => setEditing([editId, editName, e.target.value, editAdmin])}
                         />
@@ -109,27 +109,27 @@ export const UsersPage = () => {
                     {isEdited ? (
                         <Checkbox checked={editAdmin} onChange={(e) => setEditing([editId, editName, '', e.target.checked])} />
                     ) : user.admin ? (
-                        'Yes'
+                        'はい'
                     ) : (
-                        'No'
+                        'いいえ'
                     )}
                 </TableCell>
                 <TableCell align="right">
                     {isEdited ? (
                         <>
-                            <IconButton onClick={onClickSubmit} title="Save">
+                            <IconButton onClick={onClickSubmit} title="保存">
                                 <DoneIcon />
                             </IconButton>
-                            <IconButton onClick={() => setEditing(NoEdit)} title="Cancel">
+                            <IconButton onClick={() => setEditing(NoEdit)} title="キャンセル">
                                 <CloseIcon />
                             </IconButton>
                         </>
                     ) : (
                         <>
-                            <IconButton onClick={() => setEditing([user.id, user.name, '', user.admin])} title="Edit">
+                            <IconButton onClick={() => setEditing([user.id, user.name, '', user.admin])} title="編集">
                                 <EditIcon />
                             </IconButton>
-                            <IconButton onClick={() => setRemoveUserConfirmation([user.id, user.name])} title="Delete">
+                            <IconButton onClick={() => setRemoveUserConfirmation([user.id, user.name])} title="削除">
                                 <DeleteIcon />
                             </IconButton>
                         </>
@@ -148,16 +148,16 @@ export const UsersPage = () => {
                 onClick={() => setAddUser(true)}
                 fullWidth
                 style={{marginBottom: 10}}>
-                Create User
+                ユーザーを作成
             </Button>
             {addUser && <AddUserDialog open={true} close={() => setAddUser(false)} />}
             <Table>
                 <TableHead>
                     <TableRow>
                         <TableCell>ID</TableCell>
-                        <TableCell>Name</TableCell>
-                        <TableCell>Password</TableCell>
-                        <TableCell>Admin</TableCell>
+                        <TableCell>名前</TableCell>
+                        <TableCell>パスワード</TableCell>
+                        <TableCell>管理者</TableCell>
                         <TableCell style={{width: 150}} />
                     </TableRow>
                 </TableHead>
@@ -165,11 +165,11 @@ export const UsersPage = () => {
             </Table>
             {removeUserConfirmation ? (
                 <ConfirmDialog
-                    title={`Are you sure you want to delete the user '${removeUserConfirmation[1]}'?`}
+                    title={`ユーザー「${removeUserConfirmation[1]}」を削除しますか？`}
                     fClose={() => setRemoveUserConfirmation(false)}
                     fOnSubmit={onClickDelete}>
-                    <b>This operation cannot be undone.</b> Deleting the user includes deleting dashboards, time spans, tags and
-                    devices of that user.
+                    <b>この操作は取り消せません。</b>
+                    このユーザーのダッシュボード、記録、タグ、デバイスもすべて削除されます。
                 </ConfirmDialog>
             ) : null}
         </Paper>

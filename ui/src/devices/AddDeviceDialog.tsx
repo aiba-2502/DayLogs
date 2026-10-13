@@ -38,11 +38,11 @@ export const AddDeviceDialog: React.FC<AddTagDialogProps> = ({close, open, initi
         addDevice({variables: {deviceType, name}})
             .then((result: MutationFetchResult<CreateDevice>) => {
                 if (result.data && result.data.device) {
-                    enqueueSnackbar('Client created', {variant: 'success'});
+                    enqueueSnackbar('デバイスを作成しました', {variant: 'success'});
                     setToken(result.data.device.token);
                 }
             })
-            .catch(handleError('Create Dialog', enqueueSnackbar));
+            .catch(handleError('デバイスの作成', enqueueSnackbar));
     };
 
     return (
@@ -57,21 +57,21 @@ export const AddDeviceDialog: React.FC<AddTagDialogProps> = ({close, open, initi
             fullWidth>
             {token === '' ? (
                 <form onSubmit={submit} noValidate autoComplete="off">
-                    <DialogTitle id="form-dialog-title">Create Device</DialogTitle>
+                    <DialogTitle id="form-dialog-title">デバイスを作成</DialogTitle>
                     <DialogContent>
                         <DialogContentText />
                         <TextField
                             autoFocus
                             margin="dense"
                             id="name"
-                            label="Name"
+                            label="名前"
                             type="text"
                             fullWidth
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                         />
                         <FormControl margin={'normal'} fullWidth>
-                            <InputLabel>Expires after</InputLabel>
+                            <InputLabel>有効期限</InputLabel>
                             <Select value={deviceType} onChange={(e) => setDeviceType(e.target.value as DeviceType)} fullWidth>
                                 <option value={DeviceType.NoExpiry}>{deviceTypeToString(DeviceType.NoExpiry)}</option>
                                 <option value={DeviceType.ShortExpiry}>{deviceTypeToString(DeviceType.ShortExpiry)}</option>
@@ -81,26 +81,25 @@ export const AddDeviceDialog: React.FC<AddTagDialogProps> = ({close, open, initi
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={close} color="primary">
-                            Cancel
+                            キャンセル
                         </Button>
                         <Button type="submit" onClick={submit} color="primary">
-                            Create Device
+                            デバイスを作成
                         </Button>
                     </DialogActions>
                 </form>
             ) : (
                 <>
-                    <DialogTitle id="form-dialog-title">Device Created</DialogTitle>
+                    <DialogTitle id="form-dialog-title">デバイスを作成しました</DialogTitle>
                     <DialogContent>
                         <DialogContentText>
-                            The device has the following authentication token, copy it and save it somewhere because you cannot
-                            obtain the token after closing this dialog
+                            このデバイスの認証トークンは以下のとおりです。このダイアログを閉じると再表示できないため、コピーして保存してください。
                             <br /> <b>{token}</b>
                         </DialogContentText>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={close} color="primary">
-                            Close
+                            閉じる
                         </Button>
                     </DialogActions>
                 </>

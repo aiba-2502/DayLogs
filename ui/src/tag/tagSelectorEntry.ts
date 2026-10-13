@@ -58,21 +58,21 @@ const tryAdd = (tagsResult: QueryResult<Tags, {}>, entry: string, onlyKeys: bool
     const key = keySomeCase.toLowerCase();
 
     if (other.length || !tagsResult.data || !tagsResult.data.tags) {
-        return {error: `${entry} has too many colons`, value: entry};
+        return {error: `${entry} にコロンが多すぎます`, value: entry};
     }
 
     const foundTag = tagsResult.data.tags.find((tag) => tag.key === key);
 
     if (foundTag === undefined) {
-        return {error: `'${key}' does not exist`, value: entry};
+        return {error: `'${key}' は存在しません`, value: entry};
     }
 
     if (onlyKeys && value) {
-        return {error: `'${key}' has a value, but this field doesn't allow them`, value: entry};
+        return {error: `'${key}' に値がありますが、この項目では値を指定できません`, value: entry};
     }
 
     if (!onlyKeys && !value) {
-        return {error: `'${key}' requires a value`, value: entry};
+        return {error: `'${key}' には値が必要です`, value: entry};
     }
 
     return {tag: foundTag, value: value || ''};
@@ -90,7 +90,7 @@ const groupAndCheckExistence = (onlyKeys: boolean, allowDuplicateKeys: boolean) 
                 a.entries = [...a.entries, entry];
                 a.usedTags = [...a.usedTags, entry.tag.key];
             } else {
-                a.errors = [...a.errors, {value: itemLabel(entry, onlyKeys), error: `'${entry.tag.key}' is already defined`}];
+                a.errors = [...a.errors, {value: itemLabel(entry, onlyKeys), error: `'${entry.tag.key}' は指定済みです`}];
             }
         } else {
             a.errors = [...a.errors, entry];
@@ -119,16 +119,16 @@ export const addValues = (
 
 export const itemLabel = (tag: TagSelectorEntry, onlyShowKey = false) => {
     if (tag.tag.create) {
-        return `Create tag '${tag.tag.key}'`;
+        return `タグ '${tag.tag.key}' を作成`;
     }
     if (tag.tag.alreadyUsed) {
-        return `Tag '${tag.tag.key}' is already defined`;
+        return `タグ '${tag.tag.key}' は指定済みです`;
     }
     if (tag.tag.noValues) {
-        return `Unkown value '${tag.value}' of tag '${tag.tag.key}'`;
+        return `タグ '${tag.tag.key}' の値 '${tag.value}' は不明です`;
     }
     if (tag.tag.allValuesUsed) {
-        return `All values of tag '${tag.tag.key}' are used`;
+        return `タグ '${tag.tag.key}' の値はすべて使用済みです`;
     }
     if (onlyShowKey) {
         return tag.tag.key;

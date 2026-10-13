@@ -11,6 +11,38 @@ import {DateLocale, Theme, WeekDay, DateTimeInputStyle} from '../gql/__generated
 import {useSnackbar} from 'notistack';
 import {handleError} from '../utils/errors';
 
+const dateLocaleLabels: Array<[DateLocale, string]> = [
+    [DateLocale.Japanese, '日本語 (YYYY/MM/DD 24時間)'],
+    [DateLocale.American, 'アメリカ式'],
+    [DateLocale.American24h, 'アメリカ式 (24時間)'],
+    [DateLocale.German, 'ドイツ式'],
+    [DateLocale.Australian, 'オーストラリア式'],
+    [DateLocale.British, 'イギリス式'],
+];
+
+const themeLabels: Record<Theme, string> = {
+    [Theme.FirstGaming]: 'First Gaming (ダーク)',
+    [Theme.GruvboxDark]: 'Gruvbox (ダーク)',
+    [Theme.GruvboxLight]: 'Gruvbox (ライト)',
+    [Theme.MaterialDark]: 'Material (ダーク)',
+    [Theme.MaterialLight]: 'Material (ライト)',
+};
+
+const weekDayLabels: Array<[WeekDay, string]> = [
+    [WeekDay.Sunday, '日曜日'],
+    [WeekDay.Monday, '月曜日'],
+    [WeekDay.Tuesday, '火曜日'],
+    [WeekDay.Wednesday, '水曜日'],
+    [WeekDay.Thursday, '木曜日'],
+    [WeekDay.Friday, '金曜日'],
+    [WeekDay.Saturday, '土曜日'],
+];
+
+const dateTimeInputStyleLabels: Record<DateTimeInputStyle, string> = {
+    [DateTimeInputStyle.Fancy]: 'ピッカー',
+    [DateTimeInputStyle.Native]: 'ブラウザ標準',
+};
+
 const useStyles = makeStyles((theme) => ({
     root: {
         ...theme.mixins.gutters(),
@@ -31,7 +63,7 @@ export const SettingsPage: React.FC = () => {
     return (
         <Paper elevation={1} className={classes.root}>
             <FormControl margin={'normal'} fullWidth>
-                <InputLabel>Date Locale</InputLabel>
+                <InputLabel>日付形式</InputLabel>
                 <Select
                     fullWidth
                     value={settings.dateLocale}
@@ -45,47 +77,47 @@ export const SettingsPage: React.FC = () => {
                             },
                         })
                             .then(() => {
-                                enqueueSnackbar('date locale changed', {
+                                enqueueSnackbar('日付形式を変更しました', {
                                     variant: 'success',
                                 });
-                                enqueueSnackbar('a reload of the page is required for the new date locale to fully function', {
+                                enqueueSnackbar('新しい日付形式を完全に反映するにはページを再読み込みしてください', {
                                     variant: 'info',
                                     preventDuplicate: true,
                                     persist: true,
                                 });
                             })
-                            .catch(handleError('set date locale', enqueueSnackbar));
+                            .catch(handleError('日付形式の変更', enqueueSnackbar));
                     }}>
-                    {Object.values(DateLocale).map((type) => (
+                    {dateLocaleLabels.map(([type, label]) => (
                         <option key={type} value={type}>
-                            {type}
+                            {label}
                         </option>
                     ))}
                 </Select>
             </FormControl>
             <FormControl margin={'normal'} fullWidth>
-                <InputLabel>Theme</InputLabel>
+                <InputLabel>テーマ</InputLabel>
                 <Select
                     fullWidth
                     value={settings.theme}
                     onChange={(e) => {
                         setSettings({variables: {settings: {...settings, theme: e.target.value as Theme}}})
                             .then(() =>
-                                enqueueSnackbar('theme changed', {
+                                enqueueSnackbar('テーマを変更しました', {
                                     variant: 'success',
                                 })
                             )
-                            .catch(handleError('set theme', enqueueSnackbar));
+                            .catch(handleError('テーマの変更', enqueueSnackbar));
                     }}>
                     {Object.values(Theme).map((type) => (
                         <option key={type} value={type}>
-                            {type}
+                            {themeLabels[type]}
                         </option>
                     ))}
                 </Select>
             </FormControl>
             <FormControl margin={'normal'} fullWidth>
-                <InputLabel>First day of the week</InputLabel>
+                <InputLabel>週の開始曜日</InputLabel>
                 <Select
                     fullWidth
                     value={settings.firstDayOfTheWeek}
@@ -99,29 +131,21 @@ export const SettingsPage: React.FC = () => {
                             },
                         })
                             .then(() =>
-                                enqueueSnackbar('first day of the week changed', {
+                                enqueueSnackbar('週の開始曜日を変更しました', {
                                     variant: 'success',
                                 })
                             )
-                            .catch(handleError('set first day of the week', enqueueSnackbar));
+                            .catch(handleError('週の開始曜日の変更', enqueueSnackbar));
                     }}>
-                    {[
-                        WeekDay.Sunday,
-                        WeekDay.Monday,
-                        WeekDay.Tuesday,
-                        WeekDay.Wednesday,
-                        WeekDay.Thursday,
-                        WeekDay.Friday,
-                        WeekDay.Saturday,
-                    ].map((type) => (
+                    {weekDayLabels.map(([type, label]) => (
                         <option key={type} value={type}>
-                            {type}
+                            {label}
                         </option>
                     ))}
                 </Select>
             </FormControl>
             <FormControl margin={'normal'} fullWidth>
-                <InputLabel>Datetime input style</InputLabel>
+                <InputLabel>日時入力方式</InputLabel>
                 <Select
                     fullWidth
                     value={settings.dateTimeInputStyle}
@@ -135,15 +159,15 @@ export const SettingsPage: React.FC = () => {
                             },
                         })
                             .then(() =>
-                                enqueueSnackbar('datetime input style changed', {
+                                enqueueSnackbar('日時入力方式を変更しました', {
                                     variant: 'success',
                                 })
                             )
-                            .catch(handleError('set datetime input style', enqueueSnackbar));
+                            .catch(handleError('日時入力方式の変更', enqueueSnackbar));
                     }}>
                     {[DateTimeInputStyle.Fancy, DateTimeInputStyle.Native].map((type) => (
                         <option key={type} value={type}>
-                            {type}
+                            {dateTimeInputStyleLabels[type]}
                         </option>
                     ))}
                 </Select>

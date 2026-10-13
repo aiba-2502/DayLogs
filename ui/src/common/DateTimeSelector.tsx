@@ -78,6 +78,7 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = React.memo(
                 }}
                 ampm={ampm}
                 format={format}
+                invalidDateMessage="日時の形式が正しくありません"
                 label={label}
                 openTo={showDate ? 'date' : 'hours'}
             />

@@ -67,12 +67,12 @@ export const Tracker: React.FC<TrackerProps> = ({selectedEntries, onSelectedEntr
         if (type === Type.Tracker) {
             startTimer({variables: {start: inUserTz(moment()).format(), tags, note: ''}}).then(() => {
                 setSelectedEntries([]);
-                enqueueSnackbar('tracker started', {variant: 'success'});
+                enqueueSnackbar('トラッカーを開始しました', {variant: 'success'});
             });
         } else {
             addTimeSpan({variables: {start: inUserTz(from).format(), end: inUserTz(to).format(), tags, note: ''}}).then(() => {
                 setSelectedEntries([]);
-                enqueueSnackbar('time span added', {variant: 'success'});
+                enqueueSnackbar('記録を追加しました', {variant: 'success'});
             });
         }
     };
@@ -105,7 +105,7 @@ export const Tracker: React.FC<TrackerProps> = ({selectedEntries, onSelectedEntr
                                 }
                             }}
                             showDate={showDate}
-                            label="start"
+                            label="開始"
                         />
                         <DateTimeSelector
                             selectedDate={to}
@@ -123,12 +123,12 @@ export const Tracker: React.FC<TrackerProps> = ({selectedEntries, onSelectedEntr
                                 }
                             }}
                             showDate={showDate}
-                            label="end"
+                            label="終了"
                         />
                     </div>
                 ) : null}
                 <Button variant="text" style={{height: 50}} onClick={submit}>
-                    {type === Type.Manual ? 'add' : 'start'}
+                    {type === Type.Manual ? '追加' : '開始'}
                 </Button>
                 <IconButton onClick={(e: React.MouseEvent<HTMLElement>) => setOpenMenu(e.currentTarget)}>
                     <MoreVert />
@@ -140,7 +140,7 @@ export const Tracker: React.FC<TrackerProps> = ({selectedEntries, onSelectedEntr
                             setOpenMenu(null);
                             setType(Type.Tracker);
                         }}>
-                        Tracker
+                        トラッカー
                     </MenuItem>
                     <MenuItem
                         selected={type === Type.Manual}
@@ -148,7 +148,7 @@ export const Tracker: React.FC<TrackerProps> = ({selectedEntries, onSelectedEntr
                             setOpenMenu(null);
                             setType(Type.Manual);
                         }}>
-                        Manual
+                        手動
                     </MenuItem>
                 </Menu>
             </Paper>

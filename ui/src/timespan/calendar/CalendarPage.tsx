@@ -16,6 +16,8 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import momentPlugin from '@fullcalendar/moment';
 import interactionPlugin from '@fullcalendar/interaction';
+// @ts-ignore
+import jaLocale from '@fullcalendar/core/locales/ja';
 import {OptionsInput} from '@fullcalendar/core';
 import {UpdateTimeSpan, UpdateTimeSpanVariables} from '../../gql/__generated__/UpdateTimeSpan';
 import Popper from '@material-ui/core/Popper';
@@ -216,6 +218,7 @@ export const CalendarPage: React.FC = () => {
             <FullCalendarStyling>
                 <FullCalendar
                     defaultView="timeGridWeek"
+                    locale={jaLocale}
                     rerenderDelay={30}
                     datesRender={(x) => {
                         const range = {
@@ -233,7 +236,7 @@ export const CalendarPage: React.FC = () => {
                         timeGrid5Day: {
                             type: 'timeGrid',
                             duration: {days: 7},
-                            buttonText: '5 day',
+                            buttonText: '5日間',
                             hiddenDays: [0, 6],
                         },
                     }}
@@ -268,7 +271,7 @@ export const CalendarPage: React.FC = () => {
                     eventClick={onClick}
                     eventDrop={onDrop}
                     slotLabelFormat={(s) => toMoment(s.start.marker).format('LT')}
-                    columnHeaderFormat={(s) => toMoment(s.start.marker).format('DD ddd')}
+                    columnHeaderFormat={(s) => toMoment(s.start.marker).format('M/D(ddd)')}
                     nowIndicator={true}
                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, momentPlugin]}
                     header={{
@@ -334,7 +337,7 @@ const getElementContent = (event: EventApi, stop: () => void): string => {
     }
 
     if (event.id === StartTimerId) {
-        return 'START';
+        return '開始';
     }
 
     const start = moment(event.start);
@@ -356,7 +359,7 @@ const getElementContent = (event: EventApi, stop: () => void): string => {
             stop();
             return false;
         };
-        stopButton = `<div class="stop"><a onClick="return window.__TRAGGO_CALENDAR[${id}](event)">STOP ${timeRunningCalendar(
+        stopButton = `<div class="stop"><a onClick="return window.__TRAGGO_CALENDAR[${id}](event)">停止 ${timeRunningCalendar(
             start,
             end
         )}</a></div>`;
@@ -365,7 +368,7 @@ const getElementContent = (event: EventApi, stop: () => void): string => {
         `<span class="ellipsis" title="${event.title}" style="-webkit-line-clamp: ${amount}">${event.title}</span>`;
 
     const running = hasEnd ? `<span style="float: right">${timeRunningCalendar(start, end)}</span>` : '';
-    const date = `${start.format('LT')} - ${hasEnd ? end.format('LT') : 'now'} ${running}`;
+    const date = `${start.format('LT')} - ${hasEnd ? end.format('LT') : '現在'} ${running}`;
     if (lines < 2) {
         return event.title
             ? `<span class="ellipsis-single" title="${event.title}">${event.title}</span>${stopButton}`

@@ -242,7 +242,7 @@ export const TimeSpan: React.FC<TimeSpanProps> = React.memo(
                                     }
                                 }}
                                 showDate={showDate}
-                                label="start"
+                                label="開始"
                             />
                             {to !== undefined ? (
                                 <DateTimeSelector
@@ -277,23 +277,20 @@ export const TimeSpan: React.FC<TimeSpanProps> = React.memo(
                                         }
                                     }}
                                     showDate={showDate}
-                                    label="end"
+                                    label="終了"
                                 />
                             ) : (
                                 <Button
                                     onClick={() => {
                                         stopTimer({variables: {id, end: inUserTz(moment()).format()}}).then(stopped);
                                     }}>
-                                    Stop
+                                    停止
                                 </Button>
                             )}
                         </div>
 
                         <div style={{alignItems: 'center', display: 'flex'}}>
-                            <Typography
-                                variant="subtitle1"
-                                style={{minWidth: '70px'}}
-                                title="The amount of time between from and to">
+                            <Typography variant="subtitle1" style={{minWidth: '70px'}} title="開始から終了までの時間">
                                 {to ? <RelativeTime from={from} to={to} /> : <RelativeToNow from={from} />}
                             </Typography>
                         </div>
@@ -318,7 +315,7 @@ export const TimeSpan: React.FC<TimeSpanProps> = React.memo(
                                         },
                                     }).then(() => continued());
                                 }}>
-                                Continue
+                                再開
                             </MenuItem>
                         ) : null}
                         {addTagsToTracker ? (
@@ -327,7 +324,7 @@ export const TimeSpan: React.FC<TimeSpanProps> = React.memo(
                                     setOpenMenu(null);
                                     addTagsToTracker(selectedEntries);
                                 }}>
-                                Copy tags
+                                タグをコピー
                             </MenuItem>
                         ) : null}
                         <MenuItem
@@ -335,21 +332,21 @@ export const TimeSpan: React.FC<TimeSpanProps> = React.memo(
                                 setOpenMenu(null);
                                 toggleShowingNotes(!showNotes);
                             }}>
-                            Show Notes
+                            メモを表示
                         </MenuItem>
                         <MenuItem
                             onClick={() => {
                                 setOpenMenu(null);
                                 removeTimeSpan({variables: {id}}).then(() => deleted());
                             }}>
-                            Delete
+                            削除
                         </MenuItem>
                     </Menu>
                 </div>
                 {showNotes ? (
                     <div>
                         <TextField
-                            label="Note"
+                            label="メモ"
                             fullWidth
                             multiline
                             defaultValue={initialNote}

@@ -34,7 +34,7 @@ export const ActiveTrackers = () => {
     return (
         <>
             <Typography align="center" variant="h5" style={{marginTop: 10}}>
-                Active Timers
+                実行中のトラッカー
             </Typography>
             {values.map((value) => {
                 return <TimeSpan key={value.id} {...value} />;

@@ -55,7 +55,7 @@ export const AddPopup: React.FC<EditPopupProps> = ({
             <Fade fullyVisible={!preview} opacity={0.4}>
                 <ClickAwayListener onClickAway={() => setEdit(null)}>
                     <Paper style={{padding: 10, maxWidth: 500}}>
-                        <Typography variant="h5">Add</Typography>
+                        <Typography variant="h5">追加</Typography>
                         <DashboardEntryForm ranges={ranges} entry={entry} onChange={setEdit} disabled={preview} />
                         <div style={{textAlign: 'right', display: 'flex', justifyContent: 'flex-end', paddingTop: 10}}>
                             <Button
@@ -64,14 +64,14 @@ export const AddPopup: React.FC<EditPopupProps> = ({
                                 style={{marginRight: 10, flex: 1}}
                                 disabled={!valid}
                                 onClick={() => doPreview(!preview)}>
-                                {preview ? 'Exit Preview' : 'Preview'}
+                                {preview ? 'プレビューを終了' : 'プレビュー'}
                             </Button>
                             <Button
                                 color={'secondary'}
                                 variant={'outlined'}
                                 style={{marginRight: 10}}
                                 onClick={() => setEdit(null)}>
-                                Cancel
+                                キャンセル
                             </Button>
                             <Button
                                 color={'primary'}
@@ -108,9 +108,9 @@ export const AddPopup: React.FC<EditPopupProps> = ({
                                         },
                                     })
                                         .then(finish)
-                                        .catch(handleError('Add Dashboard Entry', enqueueSnackbar));
+                                        .catch(handleError('ダッシュボードエントリの追加', enqueueSnackbar));
                                 }}>
-                                Add
+                                追加
                             </Button>
                         </div>
                     </Paper>

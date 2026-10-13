@@ -14,7 +14,7 @@ export const ofInterval = (interval: StatsInterval): FInterval => {
             return (d) => d.tz('utc').format('lll');
         case StatsInterval.Single:
         case StatsInterval.Daily:
-            return (d) => d.tz('utc').format('dddd') + ', ' + d.format('l');
+            return (d) => d.tz('utc').format('l(ddd)');
         default:
             return expectNever(interval);
     }

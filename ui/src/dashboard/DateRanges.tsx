@@ -161,11 +161,11 @@ export const DateRanges: React.FC<Props> = ({changeMode, dashboard, ranges, setR
                                                 if (used.length === 0) {
                                                     removeRange({variables: {rangeId: range.id}});
                                                 } else {
-                                                    alert('Range is used by ' + used.map((entry) => entry.title).join(', '));
+                                                    alert('使用中のため削除不可: ' + used.map((entry) => entry.title).join(', '));
                                                 }
                                                 setOpenMenu(null);
                                             }}>
-                                            Delete
+                                            削除
                                         </MenuItem>
                                         <MenuItem
                                             onClick={() => {
@@ -181,7 +181,7 @@ export const DateRanges: React.FC<Props> = ({changeMode, dashboard, ranges, setR
                                                 });
                                                 setOpenMenu(null);
                                             }}>
-                                            {range.editable ? 'make static' : 'make editable'}
+                                            {range.editable ? '固定にする' : '編集可能にする'}
                                         </MenuItem>
                                     </Menu>
                                 ) : (
@@ -198,7 +198,7 @@ export const DateRanges: React.FC<Props> = ({changeMode, dashboard, ranges, setR
                             addRange({
                                 variables: {
                                     dashboardId: dashboard.id,
-                                    range: {name: 'new range', editable: true, range: {from: 'now/w', to: 'now/w'}},
+                                    range: {name: '新しい期間', editable: true, range: {from: 'now/w', to: 'now/w'}},
                                 },
                             });
                         }}>
