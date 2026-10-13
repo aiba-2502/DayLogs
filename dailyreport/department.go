@@ -6,7 +6,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/traggo/server/auth"
 	"github.com/traggo/server/generated/gqlmodel"
 	"github.com/traggo/server/model"
@@ -59,21 +58,13 @@ func (r *ResolverForDailyReport) UpdateReportDepartment(ctx context.Context, id 
 	return toExternalDepartment(department), nil
 }
 
-// RemoveReportDepartment removes a department with its members, entries and attendances.
+// RemoveReportDepartment removes a department. Its members, entries and attendances are removed by ON DELETE CASCADE.
 func (r *ResolverForDailyReport) RemoveReportDepartment(ctx context.Context, id int) (*gqlmodel.ReportDepartment, error) {
 	department := model.ReportDepartment{}
 	if r.DB.First(&department, id).RecordNotFound() {
 		return nil, errNoAccess
 	}
-	err := r.transaction(func(tx *gorm.DB) error {
-		for _, m := range []interface{}{&model.ReportMember{}, &model.ReportEntry{}, &model.ReportAttendance{}} {
-			if err := tx.Where("department_id = ?", id).Delete(m).Error; err != nil {
-				return err
-			}
-		}
-		return tx.Delete(&department).Error
-	})
-	return toExternalDepartment(department), err
+	return toExternalDepartment(department), r.DB.Delete(&department).Error
 }
 
 func validateDepartment(department model.ReportDepartment) error {

@@ -72,7 +72,7 @@ func (r *ResolverForDailyReport) members(departmentID int) ([]*gqlmodel.ReportMe
 	}
 	result := []*gqlmodel.ReportMember{}
 	for _, m := range members {
-		result = append(result, &gqlmodel.ReportMember{ID: m.ID, DepartmentID: m.DepartmentID, UserID: m.UserID, Name: m.Name, FreeeEmployeeNo: m.FreeeEmployeeNo})
+		result = append(result, &gqlmodel.ReportMember{ID: m.ID, UserID: m.UserID, Name: m.Name, FreeeEmployeeNo: m.FreeeEmployeeNo})
 	}
 	return result, nil
 }

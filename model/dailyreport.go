@@ -26,31 +26,21 @@ type ReportEntry struct {
 	UserID       int
 	Date         string
 	Name         string
-	RecordType   string
 	IssueKey     string
 	Title        string
 	Category     string
 	Subcategory  string
 	GroupName    string
 	Time         float64
-	WorkCategory string
-	AssetFlag    string
-	Ratio        *float64
 	UpdatedAt    time.Time
 }
 
 // ReportAttendance holds the working hours of a day.
 type ReportAttendance struct {
-	DepartmentID int    `gorm:"primary_key;auto_increment:false"`
+	DepartmentID int    `gorm:"primary_key;auto_increment:false;type:int REFERENCES report_departments(id) ON DELETE CASCADE"`
 	UserID       int    `gorm:"primary_key;auto_increment:false"`
 	Date         string `gorm:"primary_key"`
 	WorkStart    string
 	WorkEnd      string
 	BreakTime    float64
 }
-
-// Record types of a report entry.
-const (
-	ReportRecordTask  = "task"
-	ReportRecordLeave = "leave"
-)

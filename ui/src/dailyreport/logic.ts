@@ -34,7 +34,7 @@ export interface ReportSettings {
     [key: string]: unknown;
 }
 
-export const DEFAULT_WORK_CATEGORIES: WorkCategory[] = [
+const DEFAULT_WORK_CATEGORIES: WorkCategory[] = [
     {id: 'juchu', name: '受注制作'},
     {id: 'kiki', name: '機器組込み'},
     {id: 'jisha', name: '自社利用・市場販売'},
@@ -78,12 +78,12 @@ export const subcategoriesOf = (settings: ReportSettings, category: string): str
     return found ? found.subcategories : [];
 };
 
-export const groupName = (settings: ReportSettings, id: string): string => {
+const groupName = (settings: ReportSettings, id: string): string => {
     const found = settings.groups.find((g) => g.id === id);
     return found ? found.name : '';
 };
 
-export const defaultGroupOf = (settings: ReportSettings, category: string): string => {
+const defaultGroupOf = (settings: ReportSettings, category: string): string => {
     const found = settings.categories.find((c) => c.name === category);
     return found ? groupName(settings, found.defaultGroupId) : '';
 };
@@ -115,7 +115,7 @@ export const weekday = (date: string): string => {
 };
 
 export const toHalfWidth = (text: string): string =>
-    text.replace(/[０-９．：]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
+    text.replace(/[０-９．]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
 
 const minutesOf = (clock: string): number | null => {
     const match = /^(\d{1,2}):(\d{2})$/.exec(clock.trim());
@@ -214,9 +214,6 @@ export interface CsvEntry {
     time: number;
     group: string;
     timestamp: string;
-    recordType?: string;
-    workCategory?: string;
-    assetFlag?: string;
 }
 
 const CSV_COLUMNS = [
@@ -240,15 +237,13 @@ const CSV_COLUMNS = [
 const BOM = String.fromCharCode(0xfeff);
 const quote = (value: string) => `"${value.replace(/"/g, '""')}"`;
 
-// 元ツールと同じ列の日報CSV（BOM付き）。開発工数区分・資産フラグは行に値がなければ設定から解決する
+// 元ツールと同じ列の日報CSV（BOM付き）。開発工数区分・資産フラグは設定から解決する
 export const buildCsv = (settings: ReportSettings, entries: CsvEntry[]): string => {
     const lines = entries.map((e) => {
-        const recordType = e.recordType || 'task';
-        const isTask = recordType === 'task';
-        const workCategory = isTask ? e.workCategory || resolveWorkCategoryName(settings, e.category, e.subcategory) : '';
-        const assetFlag = isTask ? e.assetFlag || resolveAssetFlag(settings, e.category, e.subcategory) : '';
+        const workCategory = resolveWorkCategoryName(settings, e.category, e.subcategory);
+        const assetFlag = resolveAssetFlag(settings, e.category, e.subcategory);
         const fields = [e.date, e.name, '', e.issueKey, e.category, e.subcategory, e.title].map(quote);
-        const rest = [e.timestamp, e.group, recordType, '', '', '', workCategory, assetFlag].map(quote);
+        const rest = [e.timestamp, e.group, 'task', '', '', '', workCategory, assetFlag].map(quote);
         return [...fields, String(e.time || 0), ...rest].join(',');
     });
     const header = CSV_COLUMNS.map(quote).join(',');
@@ -271,9 +266,16 @@ export interface SettingsFile {
     settings: ReportSettings;
 }
 
+interface NameEntry {
+    name: string;
+    freeeEmployeeNo?: string;
+    settingsGroupNo?: string;
+}
+
 // daily_report_settings_00N.js（var DAILY_REPORT_SETTINGS = {...}）を読み込む。
-// 管理者が自分で選んだファイルを、元ツールと同じくスクリプトとして評価する
-export const importSettingsJs = (text: string): SettingsFile => {
+// 管理者が自分で選んだファイルを、元ツールと同じくスクリプトとして評価する。
+// sharedMembers は settingsGroupNo で他の設定ファイルも使う人（他の部署にもメンバー登録が必要）
+export const importSettingsJs = (text: string): SettingsFile & {sharedMembers: string[]} => {
     // tslint:disable-next-line:function-constructor
     const value: unknown = new Function(
         `${text}\n;return typeof DAILY_REPORT_SETTINGS === 'undefined' ? undefined : DAILY_REPORT_SETTINGS;`
@@ -282,12 +284,12 @@ export const importSettingsJs = (text: string): SettingsFile => {
         throw new Error('DAILY_REPORT_SETTINGS が見つかりません');
     }
     const {names, settingsGroupName, ...rest} = value as Record<string, unknown>;
-    const members = asArray<string | {name: string; freeeEmployeeNo?: string}>(names).map((n) =>
-        typeof n === 'string' ? {name: n, freeeEmployeeNo: ''} : {name: n.name, freeeEmployeeNo: n.freeeEmployeeNo || ''}
-    );
+    // 元ツールの names は名前だけの文字列でも書ける
+    const entries = asArray<string | NameEntry>(names).map((n): NameEntry => (typeof n === 'string' ? {name: n} : n));
     return {
         name: typeof settingsGroupName === 'string' ? settingsGroupName : '',
-        members,
+        members: entries.map((n) => ({name: n.name, freeeEmployeeNo: n.freeeEmployeeNo || ''})),
+        sharedMembers: entries.filter((n) => n.settingsGroupNo).map((n) => `${n.name}（${n.settingsGroupNo}）`),
         settings: parseSettings(JSON.stringify(rest)),
     };
 };

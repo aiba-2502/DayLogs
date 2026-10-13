@@ -151,6 +151,17 @@ const DepartmentEditor: React.FC<{
                 const importedMembers = imported.members.map((m) => ({...m, userId: userIdOf(m.name)}));
                 setDraft(toSettingsDraft(imported.name || draft.name, imported.settings, importedMembers));
                 enqueueSnackbar('インポートしました。内容を確認して「保存」してください', {variant: 'info'});
+                if (imported.sharedMembers.length) {
+                    enqueueSnackbar(
+                        `他の部署も使う人がいます。該当する部署のメンバーにも登録してください: ${imported.sharedMembers.join(
+                            '、'
+                        )}`,
+                        {
+                            variant: 'warning',
+                            autoHideDuration: 15000,
+                        }
+                    );
+                }
             } catch (e) {
                 enqueueSnackbar(`設定ファイルを読み込めません: ${e.message}`, {variant: 'error'});
             }

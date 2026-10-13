@@ -44,13 +44,12 @@ func (r *ResolverForDailyReport) SaveDailyReport(ctx context.Context, department
 	err = r.transaction(func(tx *gorm.DB) error {
 		for _, e := range entries {
 			entry := model.ReportEntry{}
-			tx.Where("department_id = ? AND user_id = ? AND date = ? AND record_type = ? AND issue_key = ? AND title = ?",
-				departmentID, user.ID, date, model.ReportRecordTask, strings.TrimSpace(e.IssueKey), strings.TrimSpace(e.Title)).First(&entry)
+			tx.Where("department_id = ? AND user_id = ? AND date = ? AND issue_key = ? AND title = ?",
+				departmentID, user.ID, date, strings.TrimSpace(e.IssueKey), strings.TrimSpace(e.Title)).First(&entry)
 			entry.DepartmentID = departmentID
 			entry.UserID = user.ID
 			entry.Date = date
 			entry.Name = member.Name
-			entry.RecordType = model.ReportRecordTask
 			entry.IssueKey = strings.TrimSpace(e.IssueKey)
 			entry.Title = strings.TrimSpace(e.Title)
 			entry.Category = strings.TrimSpace(e.Category)
@@ -83,13 +82,13 @@ func (r *ResolverForDailyReport) RemoveReportEntry(ctx context.Context, id int) 
 	return toExternalEntry(entry), nil
 }
 
-// ReportEntries returns the lines of a department, optionally limited by date (inclusive) and user.
-func (r *ResolverForDailyReport) ReportEntries(ctx context.Context, departmentID int, from *string, to *string, userID *int) ([]*gqlmodel.ReportEntry, error) {
+// ReportEntries returns the lines of a user in a department.
+func (r *ResolverForDailyReport) ReportEntries(ctx context.Context, departmentID int, userID int) ([]*gqlmodel.ReportEntry, error) {
 	if err := r.canRead(auth.GetUser(ctx), departmentID); err != nil {
 		return nil, err
 	}
 	var entries []model.ReportEntry
-	if err := filter(r.DB, departmentID, from, to, userID).Order("date DESC, id").Find(&entries).Error; err != nil {
+	if err := r.DB.Where("department_id = ? AND user_id = ?", departmentID, userID).Order("date DESC, id").Find(&entries).Error; err != nil {
 		return nil, err
 	}
 	result := []*gqlmodel.ReportEntry{}
@@ -99,34 +98,20 @@ func (r *ResolverForDailyReport) ReportEntries(ctx context.Context, departmentID
 	return result, nil
 }
 
-// ReportAttendances returns the working hours of a department, optionally limited by date (inclusive) and user.
-func (r *ResolverForDailyReport) ReportAttendances(ctx context.Context, departmentID int, from *string, to *string, userID *int) ([]*gqlmodel.ReportAttendance, error) {
+// ReportAttendances returns the working hours of a user in a department.
+func (r *ResolverForDailyReport) ReportAttendances(ctx context.Context, departmentID int, userID int) ([]*gqlmodel.ReportAttendance, error) {
 	if err := r.canRead(auth.GetUser(ctx), departmentID); err != nil {
 		return nil, err
 	}
 	var attendances []model.ReportAttendance
-	if err := filter(r.DB, departmentID, from, to, userID).Order("date DESC, user_id").Find(&attendances).Error; err != nil {
+	if err := r.DB.Where("department_id = ? AND user_id = ?", departmentID, userID).Order("date DESC").Find(&attendances).Error; err != nil {
 		return nil, err
 	}
 	result := []*gqlmodel.ReportAttendance{}
 	for _, a := range attendances {
-		result = append(result, &gqlmodel.ReportAttendance{UserID: a.UserID, Date: a.Date, WorkStart: a.WorkStart, WorkEnd: a.WorkEnd, BreakTime: a.BreakTime})
+		result = append(result, &gqlmodel.ReportAttendance{Date: a.Date, WorkStart: a.WorkStart, WorkEnd: a.WorkEnd, BreakTime: a.BreakTime})
 	}
 	return result, nil
-}
-
-func filter(db *gorm.DB, departmentID int, from *string, to *string, userID *int) *gorm.DB {
-	q := db.Where("department_id = ?", departmentID)
-	if from != nil && *from != "" {
-		q = q.Where("date >= ?", *from)
-	}
-	if to != nil && *to != "" {
-		q = q.Where("date <= ?", *to)
-	}
-	if userID != nil {
-		q = q.Where("user_id = ?", *userID)
-	}
-	return q
 }
 
 func (r *ResolverForDailyReport) transaction(fn func(tx *gorm.DB) error) error {
@@ -140,21 +125,15 @@ func (r *ResolverForDailyReport) transaction(fn func(tx *gorm.DB) error) error {
 
 func toExternalEntry(e model.ReportEntry) *gqlmodel.ReportEntry {
 	return &gqlmodel.ReportEntry{
-		ID:           e.ID,
-		DepartmentID: e.DepartmentID,
-		UserID:       e.UserID,
-		Date:         e.Date,
-		Name:         e.Name,
-		RecordType:   e.RecordType,
-		IssueKey:     e.IssueKey,
-		Title:        e.Title,
-		Category:     e.Category,
-		Subcategory:  e.Subcategory,
-		Group:        e.GroupName,
-		Time:         e.Time,
-		WorkCategory: e.WorkCategory,
-		AssetFlag:    e.AssetFlag,
-		Ratio:        e.Ratio,
-		UpdatedAt:    model.Time(e.UpdatedAt),
+		ID:          e.ID,
+		Date:        e.Date,
+		Name:        e.Name,
+		IssueKey:    e.IssueKey,
+		Title:       e.Title,
+		Category:    e.Category,
+		Subcategory: e.Subcategory,
+		Group:       e.GroupName,
+		Time:        e.Time,
+		UpdatedAt:   model.Time(e.UpdatedAt),
 	}
 }

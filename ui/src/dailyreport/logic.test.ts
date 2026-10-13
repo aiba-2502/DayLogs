@@ -104,17 +104,19 @@ it('imports and exports the settings file', () => {
         // comment
         var DAILY_REPORT_SETTINGS = {
             settingsGroupName: "開発室",
-            names: [{ name: "山田", freeeEmployeeNo: "8" }, "佐藤"],
+            names: [{ name: "山田", freeeEmployeeNo: "8" }, "佐藤", { name: "伊藤", settingsGroupNo: "001,002" }],
             groups: [{ id: "001", name: "PoC" }],
         };`);
     expect(file.name).toBe('開発室');
     expect(file.members).toEqual([
         {name: '山田', freeeEmployeeNo: '8'},
         {name: '佐藤', freeeEmployeeNo: ''},
+        {name: '伊藤', freeeEmployeeNo: ''},
     ]);
+    expect(file.sharedMembers).toEqual(['伊藤（001,002）']);
     expect(file.settings.groups).toEqual([{id: '001', name: 'PoC'}]);
     expect(file.settings.names).toBeUndefined();
-    expect(importSettingsJs(exportSettingsJs(file))).toEqual(file);
+    expect(importSettingsJs(exportSettingsJs(file))).toEqual({...file, sharedMembers: []});
     expect(() => importSettingsJs('var X = 1;')).toThrow();
 });
 

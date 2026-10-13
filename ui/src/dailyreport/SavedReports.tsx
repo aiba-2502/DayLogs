@@ -40,7 +40,7 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, on
     const attendances = (data && data.reportAttendances) || [];
 
     const load = () => {
-        const rows = entries.filter((e) => e.date === loadDate && e.recordType === 'task');
+        const rows = entries.filter((e) => e.date === loadDate);
         if (rows.length === 0) {
             enqueueSnackbar('該当する日報データがありません', {variant: 'warning'});
             return;

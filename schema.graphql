@@ -71,8 +71,8 @@ type RootQuery {
     userSettings: UserSettings!
     reportDepartments: [ReportDepartment!]! @hasRole(role: USER)
     reportMembers(departmentId: Int!): [ReportMember!]! @hasRole(role: USER)
-    reportEntries(departmentId: Int!, from: String, to: String, userId: Int): [ReportEntry!]! @hasRole(role: USER)
-    reportAttendances(departmentId: Int!, from: String, to: String, userId: Int): [ReportAttendance!]! @hasRole(role: USER)
+    reportEntries(departmentId: Int!, userId: Int!): [ReportEntry!]! @hasRole(role: USER)
+    reportAttendances(departmentId: Int!, userId: Int!): [ReportAttendance!]! @hasRole(role: USER)
 }
 
 input InputUserSettings {
@@ -318,7 +318,6 @@ type ReportDepartment {
 
 type ReportMember {
     id: Int!
-    departmentId: Int!
     userId: Int!
     name: String!
     freeeEmployeeNo: String!
@@ -332,20 +331,14 @@ input InputReportMember {
 
 type ReportEntry {
     id: Int!
-    departmentId: Int!
-    userId: Int!
     date: String!
     name: String!
-    recordType: String!
     issueKey: String!
     title: String!
     category: String!
     subcategory: String!
     group: String!
     time: Float!
-    workCategory: String!
-    assetFlag: String!
-    ratio: Float
     updatedAt: Time!
 }
 
@@ -359,7 +352,6 @@ input InputReportEntry {
 }
 
 type ReportAttendance {
-    userId: Int!
     date: String!
     workStart: String!
     workEnd: String!

@@ -27,15 +27,12 @@ export const MyReportData = gql`
             id
             date
             name
-            recordType
             issueKey
             title
             category
             subcategory
             group
             time
-            workCategory
-            assetFlag
             updatedAt
         }
         reportAttendances(departmentId: $departmentId, userId: $userId) {

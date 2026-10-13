@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/traggo/server/model"
 	"github.com/traggo/server/test"
 )
 
@@ -101,4 +102,22 @@ func TestGQL_RemoveUser_fails_notExistingUser(t *testing.T) {
 
 	require.EqualError(t, err, "user with id 3 does not exist")
 	assertUserCount(t, db, 1)
+}
+
+func TestGQL_RemoveUser_succeeds_keepsReportMemberWithoutAccount(t *testing.T) {
+	db := test.InMemoryDB(t)
+	defer db.Close()
+	db.User(1)
+	department := model.ReportDepartment{Name: "開発室", Settings: "{}"}
+	db.Create(&department)
+	db.Create(&model.ReportMember{DepartmentID: department.ID, UserID: 1, Name: "山田"})
+
+	resolver := ResolverForUser{DB: db.DB, PassStrength: 4}
+	_, err := resolver.RemoveUser(context.Background(), 1)
+
+	require.Nil(t, err)
+	member := model.ReportMember{}
+	db.First(&member)
+	require.Equal(t, 0, member.UserID)
+	require.Equal(t, "山田", member.Name)
 }

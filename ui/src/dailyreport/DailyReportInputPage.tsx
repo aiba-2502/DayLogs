@@ -12,6 +12,7 @@ import {ReportMembers, ReportMembersVariables} from '../gql/__generated__/Report
 import {MyReportData, MyReportDataVariables} from '../gql/__generated__/MyReportData';
 import {SaveDailyReport, SaveDailyReportVariables} from '../gql/__generated__/SaveDailyReport';
 import {CenteredSpinner} from '../common/CenteredSpinner';
+import {ConfirmDialog} from '../common/ConfirmDialog';
 import {handleError} from '../utils/errors';
 import {DepartmentSelect, useReportDepartment} from './department';
 import {EntryTable} from './EntryTable';
@@ -101,23 +102,25 @@ const newDraft = (settings: ReportSettings): Draft => ({
     rows: emptyRows(),
 });
 
-// 入力途中の内容はこのブラウザに自動保存し、次に開いたときに復元する
+// 入力途中の行はこのブラウザに自動保存し、次に開いたときに復元する。
+// 日付・勤務時間は元ツールと同じく、開くたびに今日・既定値に戻す
 const useDraft = (key: string, settings: ReportSettings): [Draft, (d: Draft) => void] => {
     const [draft, setDraft] = React.useState<Draft>(() => {
+        const initial = newDraft(settings);
         try {
-            const saved = JSON.parse(localStorage.getItem(key) || 'null');
-            return saved && Array.isArray(saved.rows) ? saved : newDraft(settings);
+            const rows = JSON.parse(localStorage.getItem(key) || 'null');
+            return Array.isArray(rows) ? {...initial, rows} : initial;
         } catch (e) {
-            return newDraft(settings);
+            return initial;
         }
     });
     React.useEffect(() => {
         try {
-            localStorage.setItem(key, JSON.stringify(draft));
+            localStorage.setItem(key, JSON.stringify(draft.rows));
         } catch (e) {
             // the draft is only a convenience
         }
-    }, [key, draft]);
+    }, [key, draft.rows]);
     return [draft, setDraft];
 };
 
@@ -133,6 +136,7 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
     const {enqueueSnackbar} = useSnackbar();
     const [draft, setDraft] = useDraft(`dailyReport.draft.${departmentId}.${userId}`, settings);
     const [result, setResult] = React.useState<{text: string; markdown: string} | null>(null);
+    const [confirmClear, setConfirmClear] = React.useState(false);
     const dataVariables = {departmentId, userId};
     const dataQuery = useQuery<MyReportData, MyReportDataVariables>(gqlReport.MyReportData, {variables: dataVariables});
     const [saveReport, {loading: saving}] = useMutation<SaveDailyReport, SaveDailyReportVariables>(gqlReport.SaveDailyReport, {
@@ -268,7 +272,7 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
                     <Button variant="contained" color="primary" onClick={save} disabled={saving}>
                         一時保存
                     </Button>
-                    <Button variant="outlined" onClick={clear}>
+                    <Button variant="outlined" onClick={() => setConfirmClear(true)}>
                         クリア
                     </Button>
                     <Button variant="outlined" color="primary" onClick={exportCsv}>
@@ -290,6 +294,11 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
                     </div>
                 ) : null}
             </Paper>
+            {confirmClear ? (
+                <ConfirmDialog title="確認" fClose={() => setConfirmClear(false)} fOnSubmit={clear}>
+                    日報の入力内容をクリアしますか？
+                </ConfirmDialog>
+            ) : null}
             <SavedReports
                 settings={settings}
                 name={name}
