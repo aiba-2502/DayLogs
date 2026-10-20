@@ -1,4 +1,0 @@
-# Let's Encrypt の証明書を自動で取得・更新し、http は https に転送する
-{$DOMAIN} {
-	reverse_proxy traggo:3030
-}

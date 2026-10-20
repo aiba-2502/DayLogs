@@ -1,0 +1,2 @@
+# /etc/cron.d/daylogs-backup に置く。毎日 12:30 にバックアップ（PC が確実に起動している時間帯）
+30 12 * * * root /opt/daylogs/backup.sh
