@@ -123,7 +123,7 @@ export const Page: React.FC = ({children}) => {
             <div className={classes.toolbar}>
                 <HrefLink href="https://github.com/traggo" underline="none" target="_blank">
                     <Typography variant="h5" align="center" color="textPrimary">
-                        traggo
+                        DayLogs
                     </Typography>
                 </HrefLink>
                 <HrefLink href="https://github.com/traggo/server/releases" underline="none" target="_blank">

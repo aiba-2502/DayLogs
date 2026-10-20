@@ -1,2 +1,2 @@
-// Based on the First Gaming logo (green, violet, maroon), lightened where needed to stay readable on the navy background.
-export const Colors = ['#6eab37', '#9b4dca', '#c0393f', '#a3d977', '#d07ad8', '#7b52e0', '#e07a7f', '#b8b4d0', '#4d7a26'];
+// Based on the Glow theme (azure, violet, magenta and the pink/peach rim), light enough to read on the dark background.
+export const Colors = ['#3d8bff', '#b347ff', '#ff5fa8', '#22c3e6', '#ffa98a', '#7b6bff', '#e040c8', '#8fd3ff', '#5468ff'];

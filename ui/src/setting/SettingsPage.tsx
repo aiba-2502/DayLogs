@@ -21,6 +21,7 @@ const dateLocaleLabels: Array<[DateLocale, string]> = [
 ];
 
 const themeLabels: Record<Theme, string> = {
+    [Theme.Glow]: 'グロー (ダーク)',
     [Theme.FirstGaming]: 'First Gaming (ダーク)',
     [Theme.GruvboxDark]: 'Gruvbox (ダーク)',
     [Theme.GruvboxLight]: 'Gruvbox (ライト)',

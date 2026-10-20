@@ -25,7 +25,7 @@ func TestSettingsResolver(t *testing.T) {
 
 	settings, err := resolver.UserSettings(fake.User(1))
 	require.NoError(t, err)
-	require.Equal(t, gqlmodel.ThemeFirstGaming, settings.Theme)
+	require.Equal(t, gqlmodel.ThemeGlow, settings.Theme)
 
 	_, err = resolver.SetUserSettings(fake.User(1), gqlmodel.InputUserSettings{
 		Theme:              gqlmodel.ThemeGruvboxLight,

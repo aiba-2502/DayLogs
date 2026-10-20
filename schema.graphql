@@ -94,7 +94,7 @@ enum WeekDay {
 }
 
 enum Theme {
-    GruvboxDark, GruvboxLight, MaterialDark, MaterialLight, FirstGaming
+    GruvboxDark, GruvboxLight, MaterialDark, MaterialLight, FirstGaming, Glow
 }
 
 enum DateLocale {

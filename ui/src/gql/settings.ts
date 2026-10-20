@@ -25,7 +25,7 @@ export const SetSettings = gql`
 `;
 
 const defaultSettings = {
-    theme: Theme.FirstGaming,
+    theme: Theme.Glow,
     dateLocale: DateLocale.Japanese,
     firstDayOfTheWeek: WeekDay.Monday,
     dateTimeInputStyle: DateTimeInputStyle.Fancy,
