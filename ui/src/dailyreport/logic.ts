@@ -176,27 +176,41 @@ export const hasInput = (row: EntryRow): boolean =>
 
 export const trimRow = (row: EntryRow): EntryRow => ({...row, issueKey: row.issueKey.trim(), title: row.title.trim()});
 
+// サーバーに保存する1行（InputReportEntry）
+export const toInputEntry = (row: EntryRow) => ({
+    issueKey: row.issueKey,
+    title: row.title,
+    category: row.category,
+    subcategory: row.subcategory,
+    group: row.group,
+    time: hours(row),
+});
+
 export const sumHours = (rows: EntryRow[]): number => Math.round(rows.reduce((sum, row) => sum + hours(row), 0) * 100) / 100;
+
+// 1行の必須チェック（タイトルは見ない）。エラーがなければ空文字
+export const validateRow = (settings: ReportSettings, row: EntryRow): string => {
+    if (!row.category) {
+        return 'カテゴリが未選択です';
+    }
+    if (subcategoriesOf(settings, row.category).length > 0 && !row.subcategory) {
+        return '分類が未選択です';
+    }
+    if (!row.group) {
+        return 'グループが未選択です';
+    }
+    if (hours(row) <= 0) {
+        return '実績時間が未入力です';
+    }
+    return '';
+};
 
 // タイトルを入力した行の必須チェック。エラーがなければ空文字
 export const validateRows = (settings: ReportSettings, rows: EntryRow[]): string => {
     for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row.title.trim()) {
-            continue;
-        }
-        const line = `${i + 1}行目`;
-        if (!row.category) {
-            return `${line}: カテゴリが未選択です`;
-        }
-        if (subcategoriesOf(settings, row.category).length > 0 && !row.subcategory) {
-            return `${line}: 分類が未選択です`;
-        }
-        if (!row.group) {
-            return `${line}: グループが未選択です`;
-        }
-        if (hours(row) <= 0) {
-            return `${line}: 実績時間が未入力です`;
+        const error = rows[i].title.trim() ? validateRow(settings, rows[i]) : '';
+        if (error) {
+            return `${i + 1}行目: ${error}`;
         }
     }
     return '';

@@ -66,6 +66,14 @@ export const SaveDailyReport = gql`
     }
 `;
 
+export const UpdateReportEntry = gql`
+    mutation UpdateReportEntry($id: Int!, $entry: InputReportEntry!) {
+        updateReportEntry(id: $id, entry: $entry) {
+            id
+        }
+    }
+`;
+
 export const RemoveReportEntry = gql`
     mutation RemoveReportEntry($id: Int!) {
         removeReportEntry(id: $id) {

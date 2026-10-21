@@ -36,6 +36,7 @@ import {
     ReportSettings,
     sumHours,
     toHalfWidth,
+    toInputEntry,
     trimRow,
     validateRows,
     weekday,
@@ -173,14 +174,7 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
         if (work !== null && saved < work) {
             enqueueSnackbar(`実績時間が${(work - saved).toFixed(2)}時間足りていません`, {variant: 'warning'});
         }
-        const entries = rows.map((row) => ({
-            issueKey: row.issueKey,
-            title: row.title,
-            category: row.category,
-            subcategory: row.subcategory,
-            group: row.group,
-            time: hours(row),
-        }));
+        const entries = rows.map(toInputEntry);
         saveReport({
             variables: {departmentId, date: draft.date, workStart: draft.workStart, workEnd: draft.workEnd, breakTime, entries},
         })

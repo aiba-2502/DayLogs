@@ -11,14 +11,31 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
+import CheckIcon from '@material-ui/icons/Check';
+import CloseIcon from '@material-ui/icons/Close';
 import {useSnackbar} from 'notistack';
 import * as gqlReport from '../gql/dailyReport';
 import {MyReportData, MyReportData_reportEntries} from '../gql/__generated__/MyReportData';
 import {RemoveReportEntry, RemoveReportEntryVariables} from '../gql/__generated__/RemoveReportEntry';
+import {UpdateReportEntry, UpdateReportEntryVariables} from '../gql/__generated__/UpdateReportEntry';
 import {ConfirmDialog} from '../common/ConfirmDialog';
 import {handleError} from '../utils/errors';
 import {useReportStyles} from './styles';
-import {buildCsv, downloadText, EntryRow, formatDate, formatWorkHours, ReportSettings, weekday, workHours} from './logic';
+import {EntryCells, EntryDatalists} from './EntryTable';
+import {
+    buildCsv,
+    downloadText,
+    EntryRow,
+    formatDate,
+    formatWorkHours,
+    ReportSettings,
+    toInputEntry,
+    trimRow,
+    validateRow,
+    weekday,
+    workHours,
+} from './logic';
 
 const SHOWN = 20;
 
@@ -30,14 +47,32 @@ interface Props {
     onLoad: (rows: EntryRow[]) => void;
 }
 
+const toRow = (e: MyReportData_reportEntries): EntryRow => ({
+    issueKey: e.issueKey,
+    title: e.title,
+    category: e.category,
+    subcategory: e.subcategory,
+    group: e.group,
+    time: String(e.time),
+    groupAuto: false,
+});
+
 export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, onLoad}) => {
     const classes = useReportStyles();
     const {enqueueSnackbar} = useSnackbar();
     const [loadDate, setLoadDate] = React.useState(formatDate(new Date()));
     const [removing, setRemoving] = React.useState<MyReportData_reportEntries | null>(null);
     const [removeEntry] = useMutation<RemoveReportEntry, RemoveReportEntryVariables>(gqlReport.RemoveReportEntry);
+    // 編集中の行（1行ずつ）
+    const [editing, setEditing] = React.useState<{id: number; row: EntryRow} | null>(null);
+    const [updateEntry, {loading: updating}] = useMutation<UpdateReportEntry, UpdateReportEntryVariables>(
+        gqlReport.UpdateReportEntry
+    );
     const entries = (data && data.reportEntries) || [];
     const attendances = (data && data.reportAttendances) || [];
+    const shown = entries.slice(0, SHOWN);
+    // 編集中の行が削除や新しい保存で表示から外れたら、編集をやめた扱いにする
+    const editingShown = editing && shown.some((e) => e.id === editing.id) ? editing : null;
 
     const load = () => {
         const rows = entries.filter((e) => e.date === loadDate);
@@ -45,17 +80,7 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, on
             enqueueSnackbar('該当する日報データがありません', {variant: 'warning'});
             return;
         }
-        onLoad(
-            rows.map((e) => ({
-                issueKey: e.issueKey,
-                title: e.title,
-                category: e.category,
-                subcategory: e.subcategory,
-                group: e.group,
-                time: String(e.time),
-                groupAuto: false,
-            }))
-        );
+        onLoad(rows.map(toRow));
         enqueueSnackbar(`日報 ${rows.length}件を読み込みました`, {variant: 'success'});
     };
 
@@ -81,6 +106,22 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, on
                 refetch();
             })
             .catch(handleError('日報の削除', enqueueSnackbar));
+
+    const saveEdit = (id: number, edited: EntryRow) => {
+        const row = trimRow(edited);
+        const error = row.title ? validateRow(settings, row) : '課題タイトルを入力してください';
+        if (error) {
+            enqueueSnackbar(error, {variant: 'warning'});
+            return;
+        }
+        updateEntry({variables: {id, entry: toInputEntry(row)}})
+            .then(() => {
+                enqueueSnackbar('更新しました', {variant: 'success'});
+                setEditing(null);
+                refetch();
+            })
+            .catch(handleError('日報の更新', enqueueSnackbar));
+    };
 
     // 同じ日の行には勤務時間を1回だけ表示する
     const shownDates = new Set<string>();
@@ -114,40 +155,81 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, on
                 </Typography>
             ) : (
                 <div style={{overflowX: 'auto'}}>
-                    <Table size="small">
+                    {editingShown ? <EntryDatalists lists="dr-saved" settings={settings} /> : null}
+                    <Table size="small" style={editingShown ? {minWidth: 1200} : undefined}>
                         <TableHead>
                             <TableRow>
                                 <TableCell>日付</TableCell>
+                                <TableCell align="right">勤務時間</TableCell>
                                 <TableCell>課題キー</TableCell>
                                 <TableCell>タイトル</TableCell>
                                 <TableCell>カテゴリ</TableCell>
                                 <TableCell>分類</TableCell>
-                                <TableCell align="right">勤務時間</TableCell>
+                                <TableCell>グループ</TableCell>
                                 <TableCell align="right">実績時間</TableCell>
                                 <TableCell padding="none" />
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {entries.slice(0, SHOWN).map((e) => (
-                                <TableRow key={e.id}>
-                                    <TableCell style={{whiteSpace: 'nowrap'}}>
-                                        {e.date}（{weekday(e.date)}）
-                                    </TableCell>
-                                    <TableCell>{e.issueKey}</TableCell>
-                                    <TableCell>{e.title}</TableCell>
-                                    <TableCell>{e.category}</TableCell>
-                                    <TableCell>{e.subcategory}</TableCell>
-                                    <TableCell align="right" style={{whiteSpace: 'nowrap'}}>
-                                        {workTimeOf(e.date)}
-                                    </TableCell>
-                                    <TableCell align="right">{e.time.toFixed(2)}</TableCell>
-                                    <TableCell padding="none">
-                                        <IconButton size="small" title="削除" onClick={() => setRemoving(e)}>
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {shown.map((e) => {
+                                const edit = editingShown && editingShown.id === e.id ? editingShown : null;
+                                return (
+                                    <TableRow key={e.id}>
+                                        <TableCell style={{whiteSpace: 'nowrap'}}>
+                                            {e.date}（{weekday(e.date)}）
+                                        </TableCell>
+                                        <TableCell align="right" style={{whiteSpace: 'nowrap'}}>
+                                            {workTimeOf(e.date)}
+                                        </TableCell>
+                                        {edit ? (
+                                            <EntryCells
+                                                lists="dr-saved"
+                                                rowKey={e.id}
+                                                row={edit.row}
+                                                settings={settings}
+                                                onChange={(row) => setEditing({id: e.id, row})}
+                                            />
+                                        ) : (
+                                            <>
+                                                <TableCell>{e.issueKey}</TableCell>
+                                                <TableCell>{e.title}</TableCell>
+                                                <TableCell>{e.category}</TableCell>
+                                                <TableCell>{e.subcategory}</TableCell>
+                                                <TableCell>{e.group}</TableCell>
+                                                <TableCell align="right">{e.time.toFixed(2)}</TableCell>
+                                            </>
+                                        )}
+                                        <TableCell padding="none" style={{whiteSpace: 'nowrap'}}>
+                                            {edit ? (
+                                                <>
+                                                    <IconButton
+                                                        size="small"
+                                                        title="保存"
+                                                        disabled={updating}
+                                                        onClick={() => saveEdit(e.id, edit.row)}>
+                                                        <CheckIcon fontSize="small" />
+                                                    </IconButton>
+                                                    <IconButton size="small" title="キャンセル" onClick={() => setEditing(null)}>
+                                                        <CloseIcon fontSize="small" />
+                                                    </IconButton>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <IconButton
+                                                        size="small"
+                                                        title="編集"
+                                                        onClick={() => setEditing({id: e.id, row: toRow(e)})}>
+                                                        <EditIcon fontSize="small" />
+                                                    </IconButton>
+                                                    <IconButton size="small" title="削除" onClick={() => setRemoving(e)}>
+                                                        <DeleteIcon fontSize="small" />
+                                                    </IconButton>
+                                                </>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                     {entries.length > SHOWN ? (

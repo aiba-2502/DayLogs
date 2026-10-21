@@ -9,8 +9,9 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import {changeCategory, EntryRow, ReportSettings, subcategoriesOf, toHalfWidth} from './logic';
 
-const CATEGORY_LIST = 'dr-category-list';
-const GROUP_LIST = 'dr-group-list';
+// datalist の id。lists は表ごとの接頭辞（同じページの日報入力と保存済みデータで id が重ならないように）
+const categoryList = (lists: string) => `${lists}-category-list`;
+const groupList = (lists: string) => `${lists}-group-list`;
 
 const Required = () => <span style={{color: '#e57373'}}>*</span>;
 
@@ -25,16 +26,7 @@ export const EntryTable: React.FC<Props> = ({settings, rows, onChange}) => {
     const remove = (index: number) => onChange(rows.filter((_, i) => i !== index));
     return (
         <div style={{overflowX: 'auto'}}>
-            <datalist id={CATEGORY_LIST}>
-                {settings.categories.map((c) => (
-                    <option key={c.name} value={c.name} />
-                ))}
-            </datalist>
-            <datalist id={GROUP_LIST}>
-                {settings.groups.map((g) => (
-                    <option key={g.id} value={g.name} />
-                ))}
-            </datalist>
+            <EntryDatalists lists="dr" settings={settings} />
             <Table size="small" style={{minWidth: 900}}>
                 <TableHead>
                     <TableRow>
@@ -61,14 +53,20 @@ export const EntryTable: React.FC<Props> = ({settings, rows, onChange}) => {
                 </TableHead>
                 <TableBody>
                     {rows.map((row, index) => (
-                        <EntryRowView
-                            key={index}
-                            index={index}
-                            row={row}
-                            settings={settings}
-                            onChange={(r) => update(index, r)}
-                            onRemove={() => remove(index)}
-                        />
+                        <TableRow key={index}>
+                            <EntryCells
+                                lists="dr"
+                                rowKey={index}
+                                row={row}
+                                settings={settings}
+                                onChange={(r) => update(index, r)}
+                            />
+                            <TableCell padding="none">
+                                <IconButton size="small" title="削除" onClick={() => remove(index)}>
+                                    <DeleteIcon fontSize="small" />
+                                </IconButton>
+                            </TableCell>
+                        </TableRow>
                     ))}
                 </TableBody>
             </Table>
@@ -76,17 +74,34 @@ export const EntryTable: React.FC<Props> = ({settings, rows, onChange}) => {
     );
 };
 
-const EntryRowView: React.FC<{
-    index: number;
+// カテゴリとグループの選択肢。EntryCells と同じ lists を渡す
+export const EntryDatalists: React.FC<{lists: string; settings: ReportSettings}> = ({lists, settings}) => (
+    <>
+        <datalist id={categoryList(lists)}>
+            {settings.categories.map((c) => (
+                <option key={c.name} value={c.name} />
+            ))}
+        </datalist>
+        <datalist id={groupList(lists)}>
+            {settings.groups.map((g) => (
+                <option key={g.id} value={g.name} />
+            ))}
+        </datalist>
+    </>
+);
+
+// 1行分の入力欄（課題キー〜実績時間のセル）。rowKey は表の中で一意な値
+export const EntryCells: React.FC<{
+    lists: string;
+    rowKey: number;
     row: EntryRow;
     settings: ReportSettings;
     onChange: (row: EntryRow) => void;
-    onRemove: () => void;
-}> = ({index, row, settings, onChange, onRemove}) => {
-    const subList = `dr-sub-list-${index}`;
+}> = ({lists, rowKey, row, settings, onChange}) => {
+    const subList = `${lists}-sub-list-${rowKey}`;
     const set = (key: keyof EntryRow) => (e: React.ChangeEvent<HTMLInputElement>) => onChange({...row, [key]: e.target.value});
     return (
-        <TableRow>
+        <>
             <TableCell>
                 <TextField fullWidth value={row.issueKey} placeholder="TECSUP-1234" onChange={set('issueKey')} />
             </TableCell>
@@ -98,7 +113,7 @@ const EntryRowView: React.FC<{
                     fullWidth
                     value={row.category}
                     placeholder="カテゴリを入力..."
-                    inputProps={{list: CATEGORY_LIST}}
+                    inputProps={{list: categoryList(lists)}}
                     onChange={(e) => onChange(changeCategory(settings, row, e.target.value))}
                 />
             </TableCell>
@@ -121,7 +136,7 @@ const EntryRowView: React.FC<{
                     fullWidth
                     value={row.group}
                     placeholder="グループを入力..."
-                    inputProps={{list: GROUP_LIST}}
+                    inputProps={{list: groupList(lists)}}
                     onChange={(e) => onChange({...row, group: e.target.value, groupAuto: false})}
                 />
             </TableCell>
@@ -134,11 +149,6 @@ const EntryRowView: React.FC<{
                     onChange={(e) => onChange({...row, time: toHalfWidth(e.target.value)})}
                 />
             </TableCell>
-            <TableCell padding="none">
-                <IconButton size="small" title="削除" onClick={onRemove}>
-                    <DeleteIcon fontSize="small" />
-                </IconButton>
-            </TableCell>
-        </TableRow>
+        </>
     );
 };

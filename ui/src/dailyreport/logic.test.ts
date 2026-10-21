@@ -15,6 +15,7 @@ import {
     resolveAssetFlag,
     resolveWorkCategoryName,
     toHalfWidth,
+    validateRow,
     validateRows,
     workHours,
 } from './logic';
@@ -70,6 +71,8 @@ it('validates rows with a title', () => {
     expect(validateRows(settings, [{...row, category: '雑務', subcategory: ''}])).toBe('');
     expect(validateRows(settings, [{...row, time: '0'}])).toBe('1行目: 実績時間が未入力です');
     expect(validateRows(settings, [{...row, group: ''}])).toBe('1行目: グループが未選択です');
+    expect(validateRow(settings, {...row, category: ''})).toBe('カテゴリが未選択です');
+    expect(validateRow(settings, {...row, title: ''})).toBe('');
 });
 
 it('calculates working hours', () => {
