@@ -7,11 +7,8 @@ import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
+import {ComboField} from './ComboField';
 import {changeCategory, EntryRow, ReportSettings, subcategoriesOf, toHalfWidth} from './logic';
-
-// datalist の id。lists は表ごとの接頭辞（同じページの日報入力と保存済みデータで id が重ならないように）
-const categoryList = (lists: string) => `${lists}-category-list`;
-const groupList = (lists: string) => `${lists}-group-list`;
 
 const Required = () => <span style={{color: '#e57373'}}>*</span>;
 
@@ -26,7 +23,6 @@ export const EntryTable: React.FC<Props> = ({settings, rows, onChange}) => {
     const remove = (index: number) => onChange(rows.filter((_, i) => i !== index));
     return (
         <div style={{overflowX: 'auto'}}>
-            <EntryDatalists lists="dr" settings={settings} />
             <Table size="small" style={{minWidth: 900}}>
                 <TableHead>
                     <TableRow>
@@ -54,13 +50,7 @@ export const EntryTable: React.FC<Props> = ({settings, rows, onChange}) => {
                 <TableBody>
                     {rows.map((row, index) => (
                         <TableRow key={index}>
-                            <EntryCells
-                                lists="dr"
-                                rowKey={index}
-                                row={row}
-                                settings={settings}
-                                onChange={(r) => update(index, r)}
-                            />
+                            <EntryCells row={row} settings={settings} onChange={(r) => update(index, r)} />
                             <TableCell padding="none">
                                 <IconButton size="small" title="削除" onClick={() => remove(index)}>
                                     <DeleteIcon fontSize="small" />
@@ -74,31 +64,12 @@ export const EntryTable: React.FC<Props> = ({settings, rows, onChange}) => {
     );
 };
 
-// カテゴリとグループの選択肢。EntryCells と同じ lists を渡す
-export const EntryDatalists: React.FC<{lists: string; settings: ReportSettings}> = ({lists, settings}) => (
-    <>
-        <datalist id={categoryList(lists)}>
-            {settings.categories.map((c) => (
-                <option key={c.name} value={c.name} />
-            ))}
-        </datalist>
-        <datalist id={groupList(lists)}>
-            {settings.groups.map((g) => (
-                <option key={g.id} value={g.name} />
-            ))}
-        </datalist>
-    </>
-);
-
-// 1行分の入力欄（課題キー〜実績時間のセル）。rowKey は表の中で一意な値
+// 1行分の入力欄（課題キー〜実績時間のセル）
 export const EntryCells: React.FC<{
-    lists: string;
-    rowKey: number;
     row: EntryRow;
     settings: ReportSettings;
     onChange: (row: EntryRow) => void;
-}> = ({lists, rowKey, row, settings, onChange}) => {
-    const subList = `${lists}-sub-list-${rowKey}`;
+}> = ({row, settings, onChange}) => {
     const set = (key: keyof EntryRow) => (e: React.ChangeEvent<HTMLInputElement>) => onChange({...row, [key]: e.target.value});
     return (
         <>
@@ -109,35 +80,27 @@ export const EntryCells: React.FC<{
                 <TextField fullWidth value={row.title} placeholder="課題タイトル" onChange={set('title')} />
             </TableCell>
             <TableCell>
-                <TextField
-                    fullWidth
+                <ComboField
                     value={row.category}
+                    options={settings.categories.map((c) => c.name)}
                     placeholder="カテゴリを入力..."
-                    inputProps={{list: categoryList(lists)}}
-                    onChange={(e) => onChange(changeCategory(settings, row, e.target.value))}
+                    onChange={(category) => onChange(changeCategory(settings, row, category))}
                 />
             </TableCell>
             <TableCell>
-                <datalist id={subList}>
-                    {subcategoriesOf(settings, row.category).map((s) => (
-                        <option key={s} value={s} />
-                    ))}
-                </datalist>
-                <TextField
-                    fullWidth
+                <ComboField
                     value={row.subcategory}
+                    options={subcategoriesOf(settings, row.category)}
                     placeholder="分類を入力..."
-                    inputProps={{list: subList}}
-                    onChange={set('subcategory')}
+                    onChange={(subcategory) => onChange({...row, subcategory})}
                 />
             </TableCell>
             <TableCell>
-                <TextField
-                    fullWidth
+                <ComboField
                     value={row.group}
+                    options={settings.groups.map((g) => g.name)}
                     placeholder="グループを入力..."
-                    inputProps={{list: groupList(lists)}}
-                    onChange={(e) => onChange({...row, group: e.target.value, groupAuto: false})}
+                    onChange={(group) => onChange({...row, group, groupAuto: false})}
                 />
             </TableCell>
             <TableCell>

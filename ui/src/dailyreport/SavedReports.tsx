@@ -22,7 +22,7 @@ import {UpdateReportEntry, UpdateReportEntryVariables} from '../gql/__generated_
 import {ConfirmDialog} from '../common/ConfirmDialog';
 import {handleError} from '../utils/errors';
 import {useReportStyles} from './styles';
-import {EntryCells, EntryDatalists} from './EntryTable';
+import {EntryCells} from './EntryTable';
 import {
     buildCsv,
     downloadText,
@@ -155,7 +155,6 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, on
                 </Typography>
             ) : (
                 <div style={{overflowX: 'auto'}}>
-                    {editingShown ? <EntryDatalists lists="dr-saved" settings={settings} /> : null}
                     <Table size="small" style={editingShown ? {minWidth: 1200} : undefined}>
                         <TableHead>
                             <TableRow>
@@ -183,8 +182,6 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, on
                                         </TableCell>
                                         {edit ? (
                                             <EntryCells
-                                                lists="dr-saved"
-                                                rowKey={e.id}
                                                 row={edit.row}
                                                 settings={settings}
                                                 onChange={(row) => setEditing({id: e.id, row})}
