@@ -101,6 +101,33 @@ func TestRemoveReportEntry_onlyOwnEntries(t *testing.T) {
 	require.Empty(t, entries)
 }
 
+func TestUpdateReportEntry_onlyOwnEntriesWithoutDuplicates(t *testing.T) {
+	db, r, dep := setup(t)
+	defer db.Close()
+	user := fake.UserWithPerm(1, false)
+	saved, err := r.SaveDailyReport(user, dep, "2026-10-13", "", "", 0, []*gqlmodel.InputReportEntry{entry("A-1", "実装", 3), entry("", "会議", 1)})
+	require.NoError(t, err)
+
+	_, err = r.UpdateReportEntry(fake.UserWithPerm(2, true), saved[0].ID, *entry("A-1", "実装", 4))
+	require.Error(t, err)
+	_, err = r.UpdateReportEntry(user, saved[0].ID, *entry("", "会議", 4))
+	require.Error(t, err)
+	_, err = r.UpdateReportEntry(user, saved[0].ID, *entry("A-1", " ", 4))
+	require.Error(t, err)
+	_, err = r.UpdateReportEntry(user, saved[0].ID, *entry("A-1", "実装", 0))
+	require.Error(t, err)
+
+	updated, err := r.UpdateReportEntry(user, saved[0].ID, gqlmodel.InputReportEntry{IssueKey: " A-2 ", Title: "設計", Category: "開発", Subcategory: "設計", Group: "PoC", Time: 2.5})
+	require.NoError(t, err)
+	require.Equal(t, saved[0].ID, updated.ID)
+	entries, err := r.ReportEntries(user, dep, 1)
+	require.NoError(t, err)
+	require.Len(t, entries, 2)
+	got := entries[0]
+	require.Equal(t, []interface{}{saved[0].ID, "2026-10-13", "A-2", "設計", "開発", "設計", "PoC", 2.5},
+		[]interface{}{got.ID, got.Date, got.IssueKey, got.Title, got.Category, got.Subcategory, got.Group, got.Time})
+}
+
 func TestReportDepartments_onlyMembershipsForUsers(t *testing.T) {
 	db, r, _ := setup(t)
 	defer db.Close()

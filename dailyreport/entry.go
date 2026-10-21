@@ -50,12 +50,7 @@ func (r *ResolverForDailyReport) SaveDailyReport(ctx context.Context, department
 			entry.UserID = user.ID
 			entry.Date = date
 			entry.Name = member.Name
-			entry.IssueKey = strings.TrimSpace(e.IssueKey)
-			entry.Title = strings.TrimSpace(e.Title)
-			entry.Category = strings.TrimSpace(e.Category)
-			entry.Subcategory = strings.TrimSpace(e.Subcategory)
-			entry.GroupName = strings.TrimSpace(e.Group)
-			entry.Time = e.Time
+			setInput(&entry, e)
 			if err := tx.Save(&entry).Error; err != nil {
 				return err
 			}
@@ -68,6 +63,37 @@ func (r *ResolverForDailyReport) SaveDailyReport(ctx context.Context, department
 		return nil
 	})
 	return saved, err
+}
+
+// UpdateReportEntry updates a line of the current user. The date stays the same.
+// Another line with the same date, issue key and title would be overwritten by the next save, so it is rejected.
+func (r *ResolverForDailyReport) UpdateReportEntry(ctx context.Context, id int, e gqlmodel.InputReportEntry) (*gqlmodel.ReportEntry, error) {
+	entry := model.ReportEntry{}
+	if r.DB.Where("id = ? AND user_id = ?", id, auth.GetUser(ctx).ID).First(&entry).RecordNotFound() {
+		return nil, errors.New("日報が存在しないか、編集する権限がありません")
+	}
+	setInput(&entry, &e)
+	if entry.Title == "" || entry.Time <= 0 {
+		return nil, errors.New("タイトルと実績時間を入力してください")
+	}
+	if !r.DB.Where("department_id = ? AND user_id = ? AND date = ? AND issue_key = ? AND title = ? AND id <> ?",
+		entry.DepartmentID, entry.UserID, entry.Date, entry.IssueKey, entry.Title, id).First(&model.ReportEntry{}).RecordNotFound() {
+		return nil, errors.New("同じ日付・課題キー・タイトルの日報がすでにあります")
+	}
+	if err := r.DB.Save(&entry).Error; err != nil {
+		return nil, err
+	}
+	return toExternalEntry(entry), nil
+}
+
+// setInput sets the fields of a line that the user enters.
+func setInput(entry *model.ReportEntry, e *gqlmodel.InputReportEntry) {
+	entry.IssueKey = strings.TrimSpace(e.IssueKey)
+	entry.Title = strings.TrimSpace(e.Title)
+	entry.Category = strings.TrimSpace(e.Category)
+	entry.Subcategory = strings.TrimSpace(e.Subcategory)
+	entry.GroupName = strings.TrimSpace(e.Group)
+	entry.Time = e.Time
 }
 
 // RemoveReportEntry removes a line of the current user.
