@@ -247,8 +247,13 @@ const themes: Record<SettingTheme, Theme> = {
 
 export const ThemeProvider: React.FC = ({children}) => {
     const {theme} = useSettings();
+    const muiTheme = themes[theme] || themes[SettingTheme.Glow];
+    // 日付欄のカレンダーマークなどブラウザ標準の部品もテーマの明暗に合わせる
+    React.useEffect(() => {
+        document.documentElement.style.setProperty('color-scheme', muiTheme.palette.type);
+    }, [muiTheme]);
     return (
-        <MuiThemeProvider theme={themes[theme] || themes[SettingTheme.Glow]}>
+        <MuiThemeProvider theme={muiTheme}>
             <CssBaseline />
             {children}
         </MuiThemeProvider>
