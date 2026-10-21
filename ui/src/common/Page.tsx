@@ -19,19 +19,17 @@ import ReportAggregateIcon from '@material-ui/icons/Assessment';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import {ListSubheader, Menu} from '@material-ui/core';
-import HrefLink from '@material-ui/core/Link';
 import * as gqlUser from '../gql/user';
-import * as gqlVersion from '../gql/version';
 import Button from '@material-ui/core/Button';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import {Link} from 'react-router-dom';
 import MenuItem from '@material-ui/core/MenuItem';
 import {useMutation, useQuery} from '@apollo/react-hooks';
 import {Logout} from '../gql/__generated__/Logout';
-import {Version} from '../gql/__generated__/Version';
 import {CurrentUser} from '../gql/__generated__/CurrentUser';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import {Route, Switch} from 'react-router';
+import logo from './logo.jpg';
 
 const drawerWidth = 240;
 
@@ -61,8 +59,14 @@ const useStyles = makeStyles((theme) => ({
     toolbar: {
         ...theme.mixins.toolbar,
         display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
+        alignItems: 'center',
+        paddingLeft: theme.spacing(2),
+    },
+    logo: {
+        width: 44,
+        height: 44,
+        borderRadius: '50%',
+        marginRight: theme.spacing(1.5),
     },
     drawerPaper: {
         width: drawerWidth,
@@ -103,9 +107,6 @@ export const Page: React.FC = ({children}) => {
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const [userMenuOpen, setUserMenuOpen] = React.useState<null | HTMLElement>(null);
     const [logout] = useMutation<Logout>(gqlUser.Logout, {refetchQueries: [{query: gqlUser.CurrentUser}]});
-    const {data: {version = gqlVersion.VersionDefault.version} = gqlVersion.VersionDefault} = useQuery<Version>(
-        gqlVersion.Version
-    );
 
     const username = (data && data.user && data.user.name) || '不明';
     const admin = data && data.user && data.user.admin;
@@ -113,16 +114,13 @@ export const Page: React.FC = ({children}) => {
     const drawer = (
         <div>
             <div className={classes.toolbar}>
-                <HrefLink href="https://github.com/traggo" underline="none" target="_blank">
-                    <Typography variant="h5" align="center" color="textPrimary">
-                        DayLogs
+                <img src={logo} alt="" className={classes.logo} />
+                <div>
+                    <Typography variant="h5">DayLogs</Typography>
+                    <Typography variant="caption" color="textSecondary" display="block">
+                        ファーストゲーミング仙台店
                     </Typography>
-                </HrefLink>
-                <HrefLink href="https://github.com/traggo/server/releases" underline="none" target="_blank">
-                    <Typography variant="subtitle2" align="center" color="textPrimary">
-                        {version.name}@{version.commit.slice(0, 8)}
-                    </Typography>
-                </HrefLink>
+                </div>
             </div>
             <Divider />
             <List subheader={<ListSubheader>日報</ListSubheader>} dense={true}>

@@ -24,8 +24,11 @@ export const LoginPage = () => {
         <Grid container={true} direction="row" alignItems="center" justify="center" style={{height: '95%'}}>
             <Grid item>
                 <DefaultPaper>
-                    <Typography variant="h3" component="h1" gutterBottom={true}>
+                    <Typography variant="h3" component="h1">
                         DayLogs
+                    </Typography>
+                    <Typography variant="subtitle1" color="textSecondary" gutterBottom={true}>
+                        ファーストゲーミング仙台店
                     </Typography>
                     <LoginForm />
                 </DefaultPaper>
