@@ -27,7 +27,6 @@ import {
     buildCsv,
     downloadText,
     EntryRow,
-    formatDate,
     formatWorkHours,
     ReportSettings,
     toInputEntry,
@@ -44,7 +43,6 @@ interface Props {
     name: string;
     data?: MyReportData;
     refetch: () => void;
-    onLoad: (rows: EntryRow[]) => void;
 }
 
 const toRow = (e: MyReportData_reportEntries): EntryRow => ({
@@ -57,10 +55,11 @@ const toRow = (e: MyReportData_reportEntries): EntryRow => ({
     groupAuto: false,
 });
 
-export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, onLoad}) => {
+export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) => {
     const classes = useReportStyles();
     const {enqueueSnackbar} = useSnackbar();
-    const [loadDate, setLoadDate] = React.useState(formatDate(new Date()));
+    // 空なら全件
+    const [filterDate, setFilterDate] = React.useState('');
     const [removing, setRemoving] = React.useState<MyReportData_reportEntries | null>(null);
     const [removeEntry] = useMutation<RemoveReportEntry, RemoveReportEntryVariables>(gqlReport.RemoveReportEntry);
     // 編集中の行（1行ずつ）
@@ -70,19 +69,10 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, on
     );
     const entries = (data && data.reportEntries) || [];
     const attendances = (data && data.reportAttendances) || [];
-    const shown = entries.slice(0, SHOWN);
+    const filtered = filterDate ? entries.filter((e) => e.date === filterDate) : entries;
+    const shown = filtered.slice(0, SHOWN);
     // 編集中の行が削除や新しい保存で表示から外れたら、編集をやめた扱いにする
     const editingShown = editing && shown.some((e) => e.id === editing.id) ? editing : null;
-
-    const load = () => {
-        const rows = entries.filter((e) => e.date === loadDate);
-        if (rows.length === 0) {
-            enqueueSnackbar('該当する日報データがありません', {variant: 'warning'});
-            return;
-        }
-        onLoad(rows.map(toRow));
-        enqueueSnackbar(`日報 ${rows.length}件を読み込みました`, {variant: 'success'});
-    };
 
     const exportAll = () => {
         if (entries.length === 0) {
@@ -139,19 +129,27 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, on
         <Paper className={classes.paper}>
             <div className={classes.row}>
                 <Typography variant="h6">保存済みデータ</Typography>
-                <Typography color="textSecondary">{entries.length}件</Typography>
+                <Typography color="textSecondary">
+                    {filterDate ? `${filtered.length}件（全${entries.length}件）` : `${entries.length}件`}
+                </Typography>
                 <div style={{flexGrow: 1}} />
-                <TextField type="date" value={loadDate} onChange={(e) => setLoadDate(e.target.value)} />
-                <Button variant="outlined" onClick={load}>
-                    日報を読み込み
+                <TextField
+                    type="date"
+                    label="日付で絞り込み"
+                    InputLabelProps={{shrink: true}}
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                />
+                <Button variant="outlined" disabled={!filterDate} onClick={() => setFilterDate('')}>
+                    全件表示
                 </Button>
                 <Button variant="outlined" onClick={exportAll}>
                     全データCSV出力
                 </Button>
             </div>
-            {entries.length === 0 ? (
+            {filtered.length === 0 ? (
                 <Typography align="center" color="textSecondary" style={{padding: 20}}>
-                    保存されたデータはありません
+                    {filterDate ? 'この日付のデータはありません' : '保存されたデータはありません'}
                 </Typography>
             ) : (
                 <div style={{overflowX: 'auto'}}>
@@ -229,9 +227,9 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch, on
                             })}
                         </TableBody>
                     </Table>
-                    {entries.length > SHOWN ? (
+                    {filtered.length > SHOWN ? (
                         <Typography align="center" color="textSecondary" variant="body2" style={{marginTop: 8}}>
-                            最新{SHOWN}件を表示（全{entries.length}件）
+                            最新{SHOWN}件を表示（全{filtered.length}件）
                         </Typography>
                     ) : null}
                 </div>

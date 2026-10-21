@@ -303,13 +303,7 @@ const ReportForm: React.FC<FormProps> = ({departmentId, userId, name, settings})
                     日報の入力内容をクリアしますか？
                 </ConfirmDialog>
             ) : null}
-            <SavedReports
-                settings={settings}
-                name={name}
-                data={dataQuery.data}
-                refetch={() => dataQuery.refetch()}
-                onLoad={(rows) => setDraft({...draft, rows})}
-            />
+            <SavedReports settings={settings} name={name} data={dataQuery.data} refetch={() => dataQuery.refetch()} />
         </>
     );
 };
