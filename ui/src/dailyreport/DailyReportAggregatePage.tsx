@@ -23,7 +23,7 @@ import {CurrentUser} from '../gql/__generated__/CurrentUser';
 import {ReportMembers, ReportMembersVariables} from '../gql/__generated__/ReportMembers';
 import {MyReportData, MyReportData_reportEntries, MyReportDataVariables} from '../gql/__generated__/MyReportData';
 import {CenteredSpinner} from '../common/CenteredSpinner';
-import {Colors} from '../dashboard/Entry/colors';
+import {Colors} from './colors';
 import {handleError} from '../utils/errors';
 import {DepartmentSelect, useReportDepartment} from './department';
 import {useReportStyles} from './styles';

@@ -11,14 +11,9 @@ import Grid from '@material-ui/core/Grid';
 import {DefaultPaper} from './common/DefaultPaper';
 import {Page} from './common/Page';
 import {Redirect, Route, Switch} from 'react-router';
-import {DailyPage} from './timespan/DailyPage';
 import {DevicesPage} from './devices/DevicesPage';
 import {UsersPage} from './user/UsersPage';
-import {DashboardPage} from './dashboard/DashboardPage';
-import {DashboardsPage} from './dashboard/DashboardsPage';
-import {TagPage} from './tag/TagPage';
 import {SettingsPage} from './setting/SettingsPage';
-import {CalendarPage} from './timespan/calendar/CalendarPage';
 import {DailyReportAggregatePage} from './dailyreport/DailyReportAggregatePage';
 import {DailyReportInputPage} from './dailyreport/DailyReportInputPage';
 import {DailyReportSettingsPage} from './dailyreport/DailyReportSettingsPage';
@@ -40,18 +35,16 @@ export const Router = () => {
             {loggedIn ? null : <Redirect to="/user/login" />}
 
             <Page>
-                <Route path="/dashboards" component={DashboardsPage} />
-                <Route path="/dashboard/:id" component={DashboardPage} />
-                <Route exact path="/timesheet/list" component={DailyPage} />
-                <Route exact path="/timesheet/calendar" component={CalendarPage} />
-                <Route exact path="/report/input" component={DailyReportInputPage} />
-                <Route exact path="/report/aggregate" component={DailyReportAggregatePage} />
-                <Route exact path="/user/settings" component={SettingsPage} />
-                <Route exact path="/user/devices" component={DevicesPage} />
-                <Route exact path="/user/tags" component={TagPage} />
-                {admin ? <Route exact path="/admin/users" component={UsersPage} /> : null}
-                {admin ? <Route exact path="/admin/report-settings" component={DailyReportSettingsPage} /> : null}
-                <Route exact path="/" render={() => <Redirect to="/timesheet/list" />} />
+                <Switch>
+                    <Route exact path="/report/input" component={DailyReportInputPage} />
+                    <Route exact path="/report/aggregate" component={DailyReportAggregatePage} />
+                    <Route exact path="/user/settings" component={SettingsPage} />
+                    <Route exact path="/user/devices" component={DevicesPage} />
+                    {admin ? <Route exact path="/admin/users" component={UsersPage} /> : null}
+                    {admin ? <Route exact path="/admin/report-settings" component={DailyReportSettingsPage} /> : null}
+                    {/* 削除したタイムシート・ダッシュボード・タグの URL などは日報入力へ */}
+                    <Redirect to="/report/input" />
+                </Switch>
             </Page>
         </Switch>
     );

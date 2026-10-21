@@ -10,14 +10,9 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import DashboardIcon from '@material-ui/icons/Dashboard';
 import MenuIcon from '@material-ui/icons/Menu';
 import SettingsIcon from '@material-ui/icons/Settings';
 import DevicesIcon from '@material-ui/icons/DevicesOther';
-import LabelIcon from '@material-ui/icons/Label';
-import DashboardManageIcon from '@material-ui/icons/ListAlt';
-import TimeLineIcon from '@material-ui/icons/Timeline';
-import CalendarIcon from '@material-ui/icons/CalendarToday';
 import ReportIcon from '@material-ui/icons/Assignment';
 import ReportSettingsIcon from '@material-ui/icons/Description';
 import ReportAggregateIcon from '@material-ui/icons/Assessment';
@@ -35,10 +30,8 @@ import {useMutation, useQuery} from '@apollo/react-hooks';
 import {Logout} from '../gql/__generated__/Logout';
 import {Version} from '../gql/__generated__/Version';
 import {CurrentUser} from '../gql/__generated__/CurrentUser';
-import * as gqlDashboard from '../gql/dashboard';
-import {Dashboards} from '../gql/__generated__/Dashboards';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import {Route, RouteChildrenProps, Switch} from 'react-router';
+import {Route, Switch} from 'react-router';
 
 const drawerWidth = 240;
 
@@ -113,8 +106,6 @@ export const Page: React.FC = ({children}) => {
     const {data: {version = gqlVersion.VersionDefault.version} = gqlVersion.VersionDefault} = useQuery<Version>(
         gqlVersion.Version
     );
-    const dashboardsQuery = useQuery<Dashboards>(gqlDashboard.Dashboards);
-    const dashboards = (dashboardsQuery.data && dashboardsQuery.data.dashboards) || [];
 
     const username = (data && data.user && data.user.name) || '不明';
     const admin = data && data.user && data.user.admin;
@@ -134,43 +125,6 @@ export const Page: React.FC = ({children}) => {
                 </HrefLink>
             </div>
             <Divider />
-            <List subheader={<ListSubheader>ダッシュボード</ListSubheader>} dense={true}>
-                {dashboards.map(({id, name}) => (
-                    <ListItem key={id} button component={routerLink(`/dashboard/${id}/${encodeURIComponent(name)}`)}>
-                        <ListItemIcon>
-                            <DashboardIcon />
-                        </ListItemIcon>
-                        <ListItemText primary={name} />
-                    </ListItem>
-                ))}
-                {dashboards.length === 0 ? (
-                    <ListItem button dense={true} disabled={true}>
-                        <ListItemText primary={'ダッシュボードがありません'} />
-                    </ListItem>
-                ) : null}
-                <ListItem button component={routerLink(`/dashboards`)}>
-                    <ListItemIcon>
-                        <DashboardManageIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={'管理'} />
-                </ListItem>
-            </List>
-            <Divider />
-            <List subheader={<ListSubheader>タイムシート</ListSubheader>} dense={true}>
-                <ListItem button component={routerLink('/timesheet/list')}>
-                    <ListItemIcon>
-                        <TimeLineIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="リスト" />
-                </ListItem>
-                <ListItem button component={routerLink('/timesheet/calendar')}>
-                    <ListItemIcon>
-                        <CalendarIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="カレンダー" />
-                </ListItem>
-            </List>
-            <Divider />
             <List subheader={<ListSubheader>日報</ListSubheader>} dense={true}>
                 <ListItem button component={routerLink('/report/input')}>
                     <ListItemIcon>
@@ -187,12 +141,6 @@ export const Page: React.FC = ({children}) => {
             </List>
             <Divider />
             <List subheader={<ListSubheader>ユーザー</ListSubheader>} dense={true}>
-                <ListItem button component={routerLink('/user/tags')}>
-                    <ListItemIcon>
-                        <LabelIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="タグ" />
-                </ListItem>
                 <ListItem button component={routerLink('/user/devices')}>
                     <ListItemIcon>
                         <DevicesIcon />
@@ -243,20 +191,11 @@ export const Page: React.FC = ({children}) => {
                     </IconButton>
                     <Typography variant="h6" color="inherit" noWrap>
                         <Switch>
-                            <Route exact path="/timesheet/list">
-                                タイムシート / リスト
-                            </Route>
-                            <Route exact path="/timesheet/calendar">
-                                タイムシート / カレンダー
-                            </Route>
                             <Route exact path="/user/settings">
                                 ユーザー / 設定
                             </Route>
                             <Route exact path="/user/devices">
                                 ユーザー / デバイス
-                            </Route>
-                            <Route exact path="/user/tags">
-                                ユーザー / タグ
                             </Route>
                             <Route exact path="/admin/users">
                                 管理 / ユーザー
@@ -269,17 +208,6 @@ export const Page: React.FC = ({children}) => {
                             </Route>
                             <Route exact path="/report/aggregate">
                                 日報 / 集計・分析
-                            </Route>
-                            <Route exact path="/dashboards">
-                                ダッシュボード / 管理
-                            </Route>
-                            <Route exact path="/dashboard/:id/:name">
-                                {(props: RouteChildrenProps<{id: string}>) => {
-                                    const db = dashboards.find(
-                                        (dashboard) => dashboard.id === parseInt(props.match!.params.id, 10)
-                                    );
-                                    return 'ダッシュボード / ' + (db ? db.name : '...');
-                                }}
                             </Route>
                         </Switch>
                     </Typography>
