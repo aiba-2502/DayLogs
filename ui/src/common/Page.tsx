@@ -14,7 +14,6 @@ import MenuIcon from '@material-ui/icons/Menu';
 import SettingsIcon from '@material-ui/icons/Settings';
 import DevicesIcon from '@material-ui/icons/DevicesOther';
 import ReportIcon from '@material-ui/icons/Assignment';
-import ReportSettingsIcon from '@material-ui/icons/Description';
 import ReportAggregateIcon from '@material-ui/icons/Assessment';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -138,7 +137,15 @@ export const Page: React.FC = ({children}) => {
                 </ListItem>
             </List>
             <Divider />
-            <List subheader={<ListSubheader>ユーザー</ListSubheader>} dense={true}>
+            <List subheader={<ListSubheader>管理</ListSubheader>} dense={true}>
+                {admin ? (
+                    <ListItem button component={routerLink('/admin/users')}>
+                        <ListItemIcon>
+                            <UsersIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="ユーザー" />
+                    </ListItem>
+                ) : null}
                 <ListItem button component={routerLink('/user/devices')}>
                     <ListItemIcon>
                         <DevicesIcon />
@@ -149,28 +156,17 @@ export const Page: React.FC = ({children}) => {
                     <ListItemIcon>
                         <SettingsIcon />
                     </ListItemIcon>
-                    <ListItemText primary="設定" />
+                    <ListItemText primary="UI設定" />
                 </ListItem>
+                {admin ? (
+                    <ListItem button component={routerLink('/admin/report-settings')}>
+                        <ListItemIcon>
+                            <SettingsIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="日報設定" />
+                    </ListItem>
+                ) : null}
             </List>
-            {admin ? (
-                <>
-                    <Divider />
-                    <List subheader={<ListSubheader>管理</ListSubheader>} dense={true}>
-                        <ListItem button component={routerLink('/admin/users')}>
-                            <ListItemIcon>
-                                <UsersIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="ユーザー" />
-                        </ListItem>
-                        <ListItem button component={routerLink('/admin/report-settings')}>
-                            <ListItemIcon>
-                                <ReportSettingsIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="日報設定" />
-                        </ListItem>
-                    </List>
-                </>
-            ) : null}
             <Divider />
         </div>
     );
@@ -190,10 +186,10 @@ export const Page: React.FC = ({children}) => {
                     <Typography variant="h6" color="inherit" noWrap>
                         <Switch>
                             <Route exact path="/user/settings">
-                                ユーザー / 設定
+                                管理 / UI設定
                             </Route>
                             <Route exact path="/user/devices">
-                                ユーザー / デバイス
+                                管理 / デバイス
                             </Route>
                             <Route exact path="/admin/users">
                                 管理 / ユーザー
@@ -222,7 +218,7 @@ export const Page: React.FC = ({children}) => {
                             open={!!userMenuOpen}
                             onClose={() => setUserMenuOpen(null)}>
                             <MenuItem onClick={() => setUserMenuOpen(null)} component={routerLink('/user/settings')}>
-                                設定
+                                UI設定
                             </MenuItem>
                             <MenuItem
                                 onClick={() => {
