@@ -20,6 +20,7 @@ import TimeLineIcon from '@material-ui/icons/Timeline';
 import CalendarIcon from '@material-ui/icons/CalendarToday';
 import ReportIcon from '@material-ui/icons/Assignment';
 import ReportSettingsIcon from '@material-ui/icons/Description';
+import ReportAggregateIcon from '@material-ui/icons/Assessment';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import {ListSubheader, Menu} from '@material-ui/core';
@@ -177,6 +178,12 @@ export const Page: React.FC = ({children}) => {
                     </ListItemIcon>
                     <ListItemText primary="日報入力" />
                 </ListItem>
+                <ListItem button component={routerLink('/report/aggregate')}>
+                    <ListItemIcon>
+                        <ReportAggregateIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="集計・分析" />
+                </ListItem>
             </List>
             <Divider />
             <List subheader={<ListSubheader>ユーザー</ListSubheader>} dense={true}>
@@ -259,6 +266,9 @@ export const Page: React.FC = ({children}) => {
                             </Route>
                             <Route exact path="/report/input">
                                 日報 / 入力
+                            </Route>
+                            <Route exact path="/report/aggregate">
+                                日報 / 集計・分析
                             </Route>
                             <Route exact path="/dashboards">
                                 ダッシュボード / 管理

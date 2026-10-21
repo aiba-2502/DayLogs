@@ -473,3 +473,70 @@ export const fromSettingsDraft = (draft: SettingsDraft): ReportSettings => {
         })
     );
 };
+
+// ========== 集計・分析（元ツールの「集計・分析」のうち、保存済みデータの集計） ==========
+
+export type AggregateBy = 'detail' | 'category' | 'subcategory' | 'group' | 'name' | 'month' | 'date';
+
+export interface AggregateEntry {
+    date: string;
+    name: string;
+    category: string;
+    subcategory: string;
+    group: string;
+    time: number;
+}
+
+// 空文字の条件は「すべて」
+export interface AggregateFilter {
+    from: string;
+    to: string;
+    name: string;
+    category: string;
+    subcategory: string;
+    group: string;
+}
+
+export interface AggregateRow {
+    key: string;
+    count: number;
+    time: number;
+}
+
+export const filterEntries = <T extends AggregateEntry>(entries: T[], f: AggregateFilter): T[] =>
+    entries.filter(
+        (e) =>
+            (!f.from || e.date >= f.from) &&
+            (!f.to || e.date <= f.to) &&
+            (!f.name || e.name === f.name) &&
+            (!f.category || e.category === f.category) &&
+            (!f.subcategory || e.subcategory === f.subcategory) &&
+            (!f.group || e.group === f.group)
+    );
+
+// 集計グループごとの件数と合計時間。日付・月は古い順、それ以外は時間の多い順
+export const aggregate = (entries: AggregateEntry[], by: Exclude<AggregateBy, 'detail'>): AggregateRow[] => {
+    const rows = new Map<string, AggregateRow>();
+    entries.forEach((e) => {
+        const key = by === 'month' ? e.date.substring(0, 7) : e[by];
+        const row = rows.get(key) || {key, count: 0, time: 0};
+        rows.set(key, {key, count: row.count + 1, time: row.time + e.time});
+    });
+    const result = Array.from(rows.values()).map((r) => ({...r, time: Math.round(r.time * 100) / 100}));
+    return by === 'date' || by === 'month'
+        ? result.sort((a, b) => (a.key < b.key ? -1 : 1))
+        : result.sort((a, b) => b.time - a.time);
+};
+
+export type QuickRange = 'prevMonth' | 'thisMonth' | 'prevWeek' | 'thisWeek';
+
+// 期間のクイック指定。週は元ツールと同じく月曜始まり
+export const quickRange = (range: QuickRange, now: Date): {from: string; to: string} => {
+    const [y, m, d] = [now.getFullYear(), now.getMonth(), now.getDate()];
+    if (range === 'prevMonth' || range === 'thisMonth') {
+        const month = range === 'thisMonth' ? m : m - 1;
+        return {from: formatDate(new Date(y, month, 1)), to: formatDate(new Date(y, month + 1, 0))};
+    }
+    const monday = d - ((now.getDay() + 6) % 7) - (range === 'prevWeek' ? 7 : 0);
+    return {from: formatDate(new Date(y, m, monday)), to: formatDate(new Date(y, m, monday + 6))};
+};

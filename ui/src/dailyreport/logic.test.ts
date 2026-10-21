@@ -1,4 +1,5 @@
 import {
+    aggregate,
     buildCsv,
     categoryPairs,
     formatWorkHours,
@@ -10,8 +11,10 @@ import {
     csvFileName,
     emptyRow,
     exportSettingsJs,
+    filterEntries,
     importSettingsJs,
     parseSettings,
+    quickRange,
     resolveAssetFlag,
     resolveWorkCategoryName,
     toHalfWidth,
@@ -190,4 +193,36 @@ it('keeps only meaningful overrides', () => {
         {category: '開発', subcategory: '設計'},
         {category: '雑務', subcategory: ''},
     ]);
+});
+
+const entries = [
+    {date: '2026-09-30', name: '山田', category: '開発', subcategory: '実装', group: 'PoC', time: 2},
+    {date: '2026-10-01', name: '山田', category: '開発', subcategory: '設計', group: 'PoC', time: 1.1},
+    {date: '2026-10-01', name: '佐藤', category: '雑務', subcategory: '', group: 'その他', time: 0.5},
+    {date: '2026-10-05', name: '佐藤', category: '開発', subcategory: '実装', group: 'PoC', time: 2.2},
+];
+const all = {from: '', to: '', name: '', category: '', subcategory: '', group: ''};
+
+it('filters and aggregates saved entries', () => {
+    const october = filterEntries(entries, {...all, from: '2026-10-01', to: '2026-10-31'});
+    expect(october.length).toBe(3);
+    expect(filterEntries(entries, {...all, name: '佐藤', category: '開発'})).toEqual([entries[3]]);
+    expect(aggregate(october, 'category')).toEqual([
+        {key: '開発', count: 2, time: 3.3},
+        {key: '雑務', count: 1, time: 0.5},
+    ]);
+    expect(aggregate(entries, 'month').map((r) => r.key)).toEqual(['2026-09', '2026-10']);
+    expect(aggregate(entries, 'date').map((r) => [r.key, r.time])).toEqual([
+        ['2026-09-30', 2],
+        ['2026-10-01', 1.6],
+        ['2026-10-05', 2.2],
+    ]);
+});
+
+it('calculates quick ranges with weeks starting on Monday', () => {
+    const wednesday = new Date(2026, 9, 21);
+    expect(quickRange('thisMonth', wednesday)).toEqual({from: '2026-10-01', to: '2026-10-31'});
+    expect(quickRange('prevMonth', new Date(2026, 0, 15))).toEqual({from: '2025-12-01', to: '2025-12-31'});
+    expect(quickRange('thisWeek', wednesday)).toEqual({from: '2026-10-19', to: '2026-10-25'});
+    expect(quickRange('prevWeek', new Date(2026, 9, 25))).toEqual({from: '2026-10-12', to: '2026-10-18'});
 });
