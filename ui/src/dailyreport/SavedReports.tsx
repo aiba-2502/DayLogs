@@ -37,8 +37,6 @@ import {
     workHours,
 } from './logic';
 
-const SHOWN = 20;
-
 interface Props {
     settings: ReportSettings;
     name: string;
@@ -72,9 +70,9 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) =
     const entries = (data && data.reportEntries) || [];
     const attendances = (data && data.reportAttendances) || [];
     const filtered = filterDate ? entries.filter((e) => e.date === filterDate) : entries;
-    // 最新SHOWN件（サーバーは日付の新しい順）を日付順に並べ、同じ日は入力順のまま
+    // 日付順に並べ、同じ日は入力順のまま（sortは元の配列を変えるのでコピーしてから）
     const shown = filtered
-        .slice(0, SHOWN)
+        .slice()
         .sort((a, b) => (ascending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date)) || a.id - b.id);
     // 編集中の行が削除や新しい保存で表示から外れたら、編集をやめた扱いにする
     const editingShown = editing && shown.some((e) => e.id === editing.id) ? editing : null;
@@ -157,8 +155,8 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) =
                     {filterDate ? 'この日付のデータはありません' : '保存されたデータはありません'}
                 </Typography>
             ) : (
-                <div style={{overflowX: 'auto'}}>
-                    <Table size="small" style={editingShown ? {minWidth: 1200} : undefined}>
+                <div style={{overflow: 'auto', maxHeight: '70vh'}}>
+                    <Table size="small" stickyHeader={true} style={editingShown ? {minWidth: 1200} : undefined}>
                         <TableHead>
                             <TableRow>
                                 <TableCell sortDirection={ascending ? 'asc' : 'desc'}>
@@ -239,11 +237,6 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) =
                             })}
                         </TableBody>
                     </Table>
-                    {filtered.length > SHOWN ? (
-                        <Typography align="center" color="textSecondary" variant="body2" style={{marginTop: 8}}>
-                            最新{SHOWN}件を表示（全{filtered.length}件）
-                        </Typography>
-                    ) : null}
                 </div>
             )}
             {removing ? (
