@@ -9,6 +9,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import TableSortLabel from '@material-ui/core/TableSortLabel';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
@@ -60,6 +61,7 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) =
     const {enqueueSnackbar} = useSnackbar();
     // 空なら全件
     const [filterDate, setFilterDate] = React.useState('');
+    const [ascending, setAscending] = React.useState(true);
     const [removing, setRemoving] = React.useState<MyReportData_reportEntries | null>(null);
     const [removeEntry] = useMutation<RemoveReportEntry, RemoveReportEntryVariables>(gqlReport.RemoveReportEntry);
     // 編集中の行（1行ずつ）
@@ -70,7 +72,10 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) =
     const entries = (data && data.reportEntries) || [];
     const attendances = (data && data.reportAttendances) || [];
     const filtered = filterDate ? entries.filter((e) => e.date === filterDate) : entries;
-    const shown = filtered.slice(0, SHOWN);
+    // 最新SHOWN件（サーバーは日付の新しい順）を日付順に並べ、同じ日は入力順のまま
+    const shown = filtered
+        .slice(0, SHOWN)
+        .sort((a, b) => (ascending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date)) || a.id - b.id);
     // 編集中の行が削除や新しい保存で表示から外れたら、編集をやめた扱いにする
     const editingShown = editing && shown.some((e) => e.id === editing.id) ? editing : null;
 
@@ -156,7 +161,14 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) =
                     <Table size="small" style={editingShown ? {minWidth: 1200} : undefined}>
                         <TableHead>
                             <TableRow>
-                                <TableCell>日付</TableCell>
+                                <TableCell sortDirection={ascending ? 'asc' : 'desc'}>
+                                    <TableSortLabel
+                                        active={true}
+                                        direction={ascending ? 'asc' : 'desc'}
+                                        onClick={() => setAscending(!ascending)}>
+                                        日付
+                                    </TableSortLabel>
+                                </TableCell>
                                 <TableCell align="right">勤務時間</TableCell>
                                 <TableCell>課題キー</TableCell>
                                 <TableCell>タイトル</TableCell>
