@@ -116,16 +116,16 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) =
             .catch(handleError('日報の更新', enqueueSnackbar));
     };
 
-    // 同じ日の行には勤務時間を1回だけ表示する
+    // 同じ日の行には開始・終了・勤務時間を1回だけ表示する
     const shownDates = new Set<string>();
-    const workTimeOf = (date: string) => {
+    const attendanceOf = (date: string) => {
         const attendance = attendances.find((a) => a.date === date);
         if (!attendance || shownDates.has(date)) {
-            return '';
+            return null;
         }
         shownDates.add(date);
         const value = workHours(attendance.workStart, attendance.workEnd, attendance.breakTime);
-        return value === null ? '' : formatWorkHours(value);
+        return {...attendance, hours: value === null ? '' : formatWorkHours(value)};
     };
 
     return (
@@ -156,7 +156,7 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) =
                 </Typography>
             ) : (
                 <div style={{overflow: 'auto', maxHeight: '70vh'}}>
-                    <Table size="small" stickyHeader={true} style={editingShown ? {minWidth: 1200} : undefined}>
+                    <Table size="small" stickyHeader={true} style={editingShown ? {minWidth: 1350} : undefined}>
                         <TableHead>
                             <TableRow>
                                 <TableCell sortDirection={ascending ? 'asc' : 'desc'}>
@@ -167,6 +167,8 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) =
                                         日付
                                     </TableSortLabel>
                                 </TableCell>
+                                <TableCell>開始</TableCell>
+                                <TableCell>終了</TableCell>
                                 <TableCell align="right">勤務時間</TableCell>
                                 <TableCell>課題キー</TableCell>
                                 <TableCell>タイトル</TableCell>
@@ -180,13 +182,16 @@ export const SavedReports: React.FC<Props> = ({settings, name, data, refetch}) =
                         <TableBody>
                             {shown.map((e) => {
                                 const edit = editingShown && editingShown.id === e.id ? editingShown : null;
+                                const attendance = attendanceOf(e.date);
                                 return (
                                     <TableRow key={e.id}>
                                         <TableCell style={{whiteSpace: 'nowrap'}}>
                                             {e.date}（{weekday(e.date)}）
                                         </TableCell>
+                                        <TableCell style={{whiteSpace: 'nowrap'}}>{attendance && attendance.workStart}</TableCell>
+                                        <TableCell style={{whiteSpace: 'nowrap'}}>{attendance && attendance.workEnd}</TableCell>
                                         <TableCell align="right" style={{whiteSpace: 'nowrap'}}>
-                                            {workTimeOf(e.date)}
+                                            {attendance && attendance.hours}
                                         </TableCell>
                                         {edit ? (
                                             <EntryCells
